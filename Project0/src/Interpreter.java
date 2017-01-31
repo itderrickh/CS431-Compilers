@@ -7,14 +7,34 @@ package Starter;
 	that all statements are print statements. This is 
 	obviously not the case and needs to be handled.
 */
+import java.util.HashMap;
 
 public class Interpreter{
+	private HashMap<String, Expression> map = new HashMap<>();
 
 	//currently assumes all Stmt are PrintStmt
 	//probably needs to be updated
  	public int interpret(Stmt stm)  {
-    	return this.interpret((PrintStmt)stm);
+		if(stm instanceof StmtList) {
+			StmtList lst = (StmtList) stm;
+			for(Stmt s : lst.stmts) {
+				this.interpret(s);
+			}
+
+			return 0;
+		} else if(stm instanceof PrintStmt) {
+			return this.interpret((PrintStmt)stm);
+		} else if(stm instanceof AssignStmt) {
+			return this.interpret((AssignStmt)stm);
+		}
+
+		return 0;
  	}
+
+	public int interpret(AssignStmt stm) {
+		map.put(stm.id, stm.exp);
+		return 0;
+	}
 
 	//each PrintStmt contains an ExpList
 	//evaluate the ExpList
@@ -27,12 +47,36 @@ public class Interpreter{
  	public int interpret(Expression exp) {
     	if (exp instanceof NumExp)
       		return this.interpret((NumExp)exp);
+		if (exp instanceof VariableExp)
+			return this.interpret((VariableExp)exp);
+		if (exp instanceof ArithExp)
+			return this.interpret((ArithExp)exp);
     	return 0;
  	}
 
  	public int interpret(NumExp exp) {
     	return exp.num;
  	}
+
+	public int interpret(VariableExp exp) {
+		return this.interpret(map.get(exp.id));
+	}
+
+	public int interpret(ArithExp exp) {
+		if(exp.operand.equals("*")) {
+			return this.interpret(exp.left) * this.interpret(exp.right);
+		} else if(exp.operand.equals("/")) {
+			return this.interpret(exp.left) / this.interpret(exp.right);
+		} else if(exp.operand.equals("+")) {
+			return this.interpret(exp.left) + this.interpret(exp.right);
+		} else if(exp.operand.equals("-")) {
+			return this.interpret(exp.left) - this.interpret(exp.right);
+		} else if(exp.operand.equals("%")) {
+			return this.interpret(exp.left) % this.interpret(exp.right);
+		}
+
+		return 0;
+	}
 
  	public int interpret(ExpList list) {
     	return this.interpret((LastExpList)list);

@@ -26,6 +26,13 @@ class AssignStmt extends Stmt{
     }
 }
 
+class StmtList extends Stmt {
+    public Stmt[] stmts;
+    public StmtList(Stmt... params) {
+        stmts = params;
+    }
+}
+
 abstract class Expression {}
 
 class NumExp extends Expression
@@ -33,6 +40,25 @@ class NumExp extends Expression
     public int num;
     public NumExp(int n){
         num = n;
+    }
+}
+
+class ArithExp extends Expression
+{
+    public Expression left;
+    public Expression right;
+    public String operand;
+    public ArithExp(Expression l, String op, Expression r) {
+        left = l;
+        operand = op;
+        right = r;
+    }
+}
+
+class VariableExp extends Expression {
+    public String id;
+    public VariableExp(String i) {
+        id = i;
     }
 }
 
