@@ -20,7 +20,7 @@ public class ProgramThree {
 	public static void main(String[] args) {
 		//Create a new Interpreter Object
 	    Interpreter interpreter = new Interpreter();
-	    System.out.println("Evaluating...");
+	    System.out.println("Evaluating Program Three...");
 	    //Call the overloaded interpret method with the
 	    //static program created above. Should print out 34.
 	    interpreter.interpret(program);
