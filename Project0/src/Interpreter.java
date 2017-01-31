@@ -51,6 +51,8 @@ public class Interpreter{
 			return this.interpret((VariableExp)exp);
 		if (exp instanceof ArithExp)
 			return this.interpret((ArithExp)exp);
+		if (exp instanceof UnaryExp)
+			return this.interpret((UnaryExp)exp);
     	return 0;
  	}
 
@@ -60,6 +62,16 @@ public class Interpreter{
 
 	public int interpret(VariableExp exp) {
 		return this.interpret(map.get(exp.id));
+	}
+
+	public int interpret(UnaryExp exp) {
+		if(exp.operand.equals(">>")) {
+			return this.interpret(exp.left) >> 1;
+		} else if(exp.operand.equals("<<")) {
+			return this.interpret(exp.left) << 1;
+		}
+
+		return 0;
 	}
 
 	public int interpret(ArithExp exp) {

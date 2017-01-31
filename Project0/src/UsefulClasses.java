@@ -55,6 +55,16 @@ class ArithExp extends Expression
     }
 }
 
+class UnaryExp extends Expression
+{
+    public Expression left;
+    public String operand;
+    public UnaryExp(Expression l, String op) {
+        left = l;
+        operand = op;
+    }
+}
+
 class VariableExp extends Expression {
     public String id;
     public VariableExp(String i) {
