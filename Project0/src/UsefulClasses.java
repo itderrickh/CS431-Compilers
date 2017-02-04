@@ -8,6 +8,19 @@ package Starter;
 
 abstract class Stmt {}
 
+class Stmts extends Stmt {
+    public Stmt head;
+    public Stmts tail;
+    public Stmts(Stmt h) {
+        this.head = h;
+        this.tail = null;
+    }
+    public Stmts(Stmt h, Stmts t) {
+        this.head = h;
+        this.tail = t;
+    }
+}
+
 //handles the Stmt --> echo ( ExpList ) production
 class PrintStmt extends Stmt{
     public ExpList exps;
@@ -26,13 +39,6 @@ class AssignStmt extends Stmt{
     }
 }
 
-class StmtList extends Stmt {
-    public Stmt[] stmts;
-    public StmtList(Stmt... params) {
-        stmts = params;
-    }
-}
-
 abstract class Expression {}
 
 class NumExp extends Expression
@@ -43,14 +49,22 @@ class NumExp extends Expression
     }
 }
 
+class IdExp extends Expression
+{
+    public String id;
+    public IdExp(String id){
+        this.id = id;
+    }
+}
+
 class ArithExp extends Expression
 {
     public Expression left;
-    public Expression right;
     public String operand;
-    public ArithExp(Expression l, String op, Expression r) {
+    public Expression right;
+    public ArithExp(Expression l, String o, Expression r) {
         left = l;
-        operand = op;
+        operand = o;
         right = r;
     }
 }
@@ -59,20 +73,23 @@ class UnaryExp extends Expression
 {
     public Expression left;
     public String operand;
-    public UnaryExp(Expression l, String op) {
+    public UnaryExp(Expression l, String o) {
         left = l;
-        operand = op;
-    }
-}
-
-class VariableExp extends Expression {
-    public String id;
-    public VariableExp(String i) {
-        id = i;
+        operand = o;
     }
 }
 
 abstract class ExpList {}
+
+class MultipleExpressions extends ExpList
+{
+    public ExpList expList;
+    public Expression exp;
+    public MultipleExpressions(Expression e, ExpList el) {
+        exp = e;
+        expList = el;
+    }
+}
 
 class LastExpList extends ExpList
 {

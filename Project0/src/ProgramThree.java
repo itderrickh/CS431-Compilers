@@ -1,28 +1,45 @@
 package Starter;
 
 public class ProgramThree {
-	//the syntax tree representation of:  echo(34)
-	//You should create separate programs for each tree you create.
-    private static VariableExp VAR_FOUR = new VariableExp("four");
-    private static VariableExp VAR_FIVE = new VariableExp("five");
-    private static NumExp THREE = new NumExp(3);
-    private static NumExp FIVE = new NumExp(5);
-    private static NumExp TEN = new NumExp(10);
+	//the syntax tree representation of:
+	//	four <-- 5 + 10;
+	//	five <-- 10 / 3;
+	//	echo(four, five);
+	//	four <-- four>>;
+	//	echo(four);
+	//	five <-- four<< / four>>;
+	//	echo(four,five)
+  	private static final NumExp FIVE = new NumExp(5);
+    private static final NumExp TEN = new NumExp(10);
+    private static final NumExp THREE = new NumExp(3);
 
-    private static AssignStmt ASSIGN_VAR_FOUR = new AssignStmt("four", new ArithExp(FIVE, "+", TEN));
-    private static AssignStmt ASSIGN_VAR_FIVE = new AssignStmt("five", new ArithExp(TEN, "/", THREE));
-    private static StmtList PRINT_FOUR_FIVE = new StmtList(new PrintStmt(new LastExpList(VAR_FOUR)), new PrintStmt(new LastExpList(VAR_FIVE)));
+	private static final IdExp VAR_FOUR = new IdExp("four");
+    private static final IdExp VAR_FIVE = new IdExp("five");
+	private static ArithExp FIVE_PLUS_TEN = new ArithExp(FIVE, "+", TEN);
+	private static ArithExp TEN_DIVIDE_THREE = new ArithExp(TEN, "/", THREE);
 
-    private static StmtList program = new StmtList(ASSIGN_VAR_FOUR, ASSIGN_VAR_FIVE, PRINT_FOUR_FIVE);
+	private static Stmt ASSIGN_FOUR = new AssignStmt("four", FIVE_PLUS_TEN);
+	private static Stmt ASSIGN_FIVE = new AssignStmt("five", TEN_DIVIDE_THREE);
+	private static PrintStmt PRINT_FOUR_FIVE = new PrintStmt(new MultipleExpressions(VAR_FOUR, new LastExpList(VAR_FIVE)));
+	private static Stmt REASSIGN_FOUR_RS = new AssignStmt("four", new UnaryExp(VAR_FOUR, ">>"));
+	private static PrintStmt PRINT_FOUR = new PrintStmt(new LastExpList(VAR_FOUR));
+	private static Stmt REASSIGN_FIVE = new AssignStmt("five", new ArithExp(new UnaryExp(VAR_FOUR, "<<"), "/", new UnaryExp(VAR_FOUR, ">>")));
+	private static PrintStmt PRINT_FOUR_FIVE_AGAIN = new PrintStmt(new MultipleExpressions(VAR_FOUR, new LastExpList(VAR_FIVE)));
 
-  	//private static StmtList program = new PrintStmt(new LastExpList(new NumExp(34)));
-
+	//Final program
+	private static Stmts program = new Stmts(ASSIGN_FOUR, 
+									new Stmts(ASSIGN_FIVE, 
+									new Stmts(PRINT_FOUR_FIVE, 
+									new Stmts(REASSIGN_FOUR_RS,
+									new Stmts(PRINT_FOUR,
+									new Stmts(REASSIGN_FIVE,
+									new Stmts(PRINT_FOUR_FIVE_AGAIN)))))));
 	public static void main(String[] args) {
 		//Create a new Interpreter Object
 	    Interpreter interpreter = new Interpreter();
 	    System.out.println("Evaluating Program Three...");
 	    //Call the overloaded interpret method with the
-	    //static program created above. Should print out 34.
+	    //static program created above. Should print out 15 3 7 7 4.
 	    interpreter.interpret(program);
 	}
 }
