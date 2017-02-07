@@ -2,8 +2,9 @@ package Starter;
 
 public class ProgramOne {
 	//the syntax tree representation of:  one <-- 30; echo(one)
-    private static Stmt ASSIGN_ONE = new AssignStmt("one", new NumExp(30));
-    private static Stmt PRINT = new PrintStmt(new LastExpList(new IdExp("one")));
+	private static IdExp VAR_ONE = new IdExp("one");
+    private static Stmt ASSIGN_ONE = new AssignStmt(VAR_ONE, new NumExp(30));
+    private static Stmt PRINT = new PrintStmt(new LastExpList(VAR_ONE));
 
 	//Final program
     private static Stmt program = new Stmts(ASSIGN_ONE, new Stmts(PRINT));

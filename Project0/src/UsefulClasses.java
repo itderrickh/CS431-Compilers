@@ -31,9 +31,9 @@ class PrintStmt extends Stmt{
 
 //handles the Stmt --> id <-- Expression production
 class AssignStmt extends Stmt{
-    public String id;
+    public IdExp id;
     public Expression exp;
-    public AssignStmt(String i, Expression e){
+    public AssignStmt(IdExp i, Expression e){
         id = i;
         exp = e;
     }

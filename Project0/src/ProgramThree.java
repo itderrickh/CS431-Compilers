@@ -18,12 +18,14 @@ public class ProgramThree {
 	private static ArithExp FIVE_PLUS_TEN = new ArithExp(FIVE, "+", TEN);
 	private static ArithExp TEN_DIVIDE_THREE = new ArithExp(TEN, "/", THREE);
 
-	private static Stmt ASSIGN_FOUR = new AssignStmt("four", FIVE_PLUS_TEN);
-	private static Stmt ASSIGN_FIVE = new AssignStmt("five", TEN_DIVIDE_THREE);
+	private static Stmt ASSIGN_FOUR = new AssignStmt(VAR_FOUR, FIVE_PLUS_TEN);
+	private static Stmt ASSIGN_FIVE = new AssignStmt(VAR_FIVE, TEN_DIVIDE_THREE);
 	private static PrintStmt PRINT_FOUR_FIVE = new PrintStmt(new MultipleExpressions(VAR_FOUR, new LastExpList(VAR_FIVE)));
-	private static Stmt REASSIGN_FOUR_RS = new AssignStmt("four", new UnaryExp(VAR_FOUR, ">>"));
+	private static Stmt REASSIGN_FOUR_RS = new AssignStmt(VAR_FOUR, new UnaryExp(VAR_FOUR, ">>"));
 	private static PrintStmt PRINT_FOUR = new PrintStmt(new LastExpList(VAR_FOUR));
-	private static Stmt REASSIGN_FIVE = new AssignStmt("five", new ArithExp(new UnaryExp(VAR_FOUR, "<<"), "/", new UnaryExp(VAR_FOUR, ">>")));
+	//Old way that was incorrect
+	//private static Stmt REASSIGN_FIVE = new AssignStmt("five", new ArithExp(new UnaryExp(VAR_FOUR, "<<"), "/", new UnaryExp(VAR_FOUR, ">>")));
+	private static Stmt REASSIGN_FIVE = new AssignStmt(VAR_FIVE, new UnaryExp(new ArithExp(new UnaryExp(VAR_FOUR, "<<"), "/", VAR_FOUR), ">>"));
 	private static PrintStmt PRINT_FOUR_FIVE_AGAIN = new PrintStmt(new MultipleExpressions(VAR_FOUR, new LastExpList(VAR_FIVE)));
 
 	//Final program

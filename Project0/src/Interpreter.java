@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.lang.*;
 
 public class Interpreter{
-	private HashMap<String, Expression> symbols = new HashMap<>();
+	private HashMap<IdExp, Expression> symbols = new HashMap<>();
 
 	//currently assumes all Stmt are PrintStmt
 	//probably needs to be updated
@@ -79,7 +79,7 @@ public class Interpreter{
  	}
 
 	public int interpret(IdExp exp) {
-		return this.interpret(symbols.get(exp.id));
+		return this.interpret(symbols.get(exp));
 	}
 
 	public int interpret(ArithExp exp) {

@@ -12,8 +12,8 @@ public class ProgramTwo {
 	private static ArithExp TWENTY_MINUS_TEN = new ArithExp(TWENTY, "-", TEN);
 	private static ArithExp VAR_TWO_MOD_FOUR = new ArithExp(VAR_TWO, "%", FOUR);
 
-	private static Stmt ASSIGN_TWO = new AssignStmt("two", new ArithExp(TWENTY_MINUS_TEN, "*", FIVE));
-	private static Stmt ASSIGN_THREE = new AssignStmt("three", new ArithExp(VAR_TWO_MOD_FOUR, "+", SIX));
+	private static Stmt ASSIGN_TWO = new AssignStmt(VAR_TWO, new ArithExp(TWENTY_MINUS_TEN, "*", FIVE));
+	private static Stmt ASSIGN_THREE = new AssignStmt(VAR_THREE, new ArithExp(VAR_TWO_MOD_FOUR, "+", SIX));
 	private static Stmt PRINT_TWO_THREE = new PrintStmt(new MultipleExpressions(VAR_TWO, new LastExpList(VAR_THREE)));
 
 	//Final program
