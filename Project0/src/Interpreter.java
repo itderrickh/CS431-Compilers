@@ -123,10 +123,6 @@ public class Interpreter{
     	String result = "";
 		result += this.interpret(list.exp);
 
-		try {
-			Thread.sleep(1000);
-		} catch(Exception ex) {}
-
 		if(list.expList instanceof MultipleExpressions) {
 			return result + "\n" + this.interpret((MultipleExpressions)list.expList);
 		} else if(list.expList instanceof LastExpList) {
