@@ -47,7 +47,6 @@ public class Tokenizer {
 
     public String getToken() {
         String val = this.getStringRepresentation(this.items);
-        System.out.println(val);
         if(isSymbol(val)) {
             return this.validSymbols.get(val);
         }
@@ -55,7 +54,6 @@ public class Tokenizer {
             return "<TId>";
         }
         else if(isNumber(val)) {
-            
             return "<TNumber>";
         }
         else if(isComment(val)) {
@@ -137,6 +135,7 @@ public class Tokenizer {
             
             
             }
+            return true;
         } catch (NumberFormatException ex) {
             return false;
         }

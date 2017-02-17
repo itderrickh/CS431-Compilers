@@ -56,6 +56,7 @@ public class FileReader {
                         //TODO the way I was thinking about this in the way this is currently set up would be to add until that character makes it not a number,
                         // then remove that element, get the tokens for the elements leading up to it, then clear and add that element back into to the tokenizer.
                         //problem is, the loop starts over by getting the next token, so what happens to the one we added back?
+                        //also crashes on '.5'
                         if (!(tokenizer.isValid() && tokenizer.isNumber())) {
                             tokenizer.removeLast(); 
                             result += tokenizer.getToken();
