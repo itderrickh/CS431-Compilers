@@ -1,0 +1,21 @@
+<project>
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes" includeantruntime="false"/>
+        <copy todir="build/classes" file="input1.txt" />
+    </target>
+
+    <target name="run">
+        <java classname="Main" classpath="build/classes"/>
+    </target>
+    
+    <target name="all">
+    	<antcall target="clean"></antcall>
+        <antcall target="compile"></antcall>
+        <antcall target="run"></antcall>
+    </target>
+</project>
