@@ -33,6 +33,10 @@ public class Tokenizer {
         items.add(c);
     }
 
+    public void removeLast() {
+        items.remove(items.size() - 1);
+    }
+
     public String getString() {
         return this.getStringRepresentation(this.items);
     }
@@ -43,6 +47,7 @@ public class Tokenizer {
 
     public String getToken() {
         String val = this.getStringRepresentation(this.items);
+        System.out.println(val);
         if(isSymbol(val)) {
             return this.validSymbols.get(val);
         }
@@ -50,6 +55,7 @@ public class Tokenizer {
             return "<TId>";
         }
         else if(isNumber(val)) {
+            
             return "<TNumber>";
         }
         else if(isComment(val)) {
@@ -107,14 +113,34 @@ public class Tokenizer {
         return isNumber(getStringRepresentation(this.items));
     }
 
-    //This has some nasty overhead but is the easiest way to check if it parses
+    //Because numbers can be "4.", we need to attempt to parse things character by character.
+    //so, parse the first value as it has to start with an integer, then keep attempting to parse until you reach something you don't recognize or a second decimal point.
     private boolean isNumber(String str) {
-        try {  
-            double d = Double.parseDouble(str);  
-        } catch(NumberFormatException nfe) {  
-            return false;  
-        }  
-        return true;  
+        try {
+            boolean sawDecimal = false;
+            for (int i = 0; i < str.length(); i++) {
+                String curChar = Character.toString(str.charAt(i));
+                if (i == 0) {
+                    Integer.parseInt(curChar);
+                } else {
+                    if (curChar == "." && sawDecimal) {
+                        return false;
+                    }
+                    if (curChar == "." && !sawDecimal) {
+                        sawDecimal = true;
+                    }
+                    else {
+                        Integer.parseInt(curChar);
+                    }
+                    
+                }
+            
+            
+            }
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+        
     }
 
     public boolean isIdentifier() {

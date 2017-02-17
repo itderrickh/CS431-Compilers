@@ -1,7 +1,7 @@
 public class Main {
     public static void main(String[] args) {
         Tokenizer t = Tokenizer.newTokenizer();
-        FileReader fr = FileReader.newFileReader("prog1.txt", t);
+        FileReader fr = FileReader.newFileReader("input1.txt", t);
 
         try {
             String result = fr.getTokens();

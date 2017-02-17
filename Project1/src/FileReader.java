@@ -30,7 +30,6 @@ public class FileReader {
             while((c = reader.read()) != -1) {
                 char character = (char) c;
                 tokenizer.add(character);
-
                 //Handle the symbol case
                 if(tokenizer.isSymbol()) {
                     result += tokenizer.getToken();
@@ -48,10 +47,24 @@ public class FileReader {
                     tokenizer.clear();
                 }
 
-                if(tokenizer.isNumber()) {
-                    while(tokenizer.isNumber() && tokenizer.isValid()) {
-                        character = (char) reader.read();
+                if(tokenizer.isNumber()) {  //check if first value is number
+                    boolean sawDecimal = false;
+                    int numberCharacter = reader.read();   
+                    while(numberCharacter != -1) {
+                        character = (char)numberCharacter;
                         tokenizer.add(character);
+                        //TODO the way I was thinking about this in the way this is currently set up would be to add until that character makes it not a number,
+                        // then remove that element, get the tokens for the elements leading up to it, then clear and add that element back into to the tokenizer.
+                        //problem is, the loop starts over by getting the next token, so what happens to the one we added back?
+                        if (!(tokenizer.isValid() && tokenizer.isNumber())) {
+                            tokenizer.removeLast(); 
+                            result += tokenizer.getToken();
+                            tokenizer.clear();
+                            tokenizer.add(character);
+                            break;
+                        }
+                        
+                        
                     }
                 }
 
