@@ -29,47 +29,109 @@ public class FileReader {
         try {
             while((c = reader.read()) != -1) {
                 char character = (char) c;
-                tokenizer.add(character);
-                //Handle the symbol case
-                if(tokenizer.isSymbol()) {
-                    result += tokenizer.getToken();
-                    tokenizer.clear();
-                }
+                int intC = 0;
 
-                //Handle the comments
-                if(tokenizer.isComment()) {
-                    character = (char) reader.read();
-                    while(character != '\n') {
-                        tokenizer.add(character);
+                if(!Character.isWhitespace(character)) {
+                    tokenizer.add(character);
+
+                    if (character == '/') {
+                        reader.mark(255);
+                        intC = reader.read();
+                        if (intC != 1) {
+                            character = (char) intC;
+                            if (character == '/') {
+                                while(character != '\n' && intC != -1) {
+                                    intC = reader.read();
+                                    character = (char) intC;
+                                }
+
+                                result += "<TComments>";
+                                tokenizer.clear();
+                                continue;
+                            }
+                            else if (character == '*') {
+                                while(intC != -1) {
+                                    intC = reader.read();
+                                    character = (char) intC;
+                                    if (character == '*') {
+                                        intC = reader.read();
+                                        character = (char) intC;
+                                        if (character == '/') {
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                result += "<TComments>";
+                                tokenizer.clear();
+                                continue;
+                            }
+                            else {
+                                reader.reset();
+                            }
+                        }
                     }
 
-                    result += tokenizer.getToken();
-                    tokenizer.clear();
-                }
+                    if(tokenizer.isSymbol()) {
+                        result += tokenizer.getToken();
+                        tokenizer.clear();
+                        continue;
+                    }
 
-                if(tokenizer.isNumber()) {  //check if first value is number
-                    boolean sawDecimal = false;
-                    int numberCharacter = reader.read();   
-                    while(numberCharacter != -1) {
-                        character = (char)numberCharacter;
-                        tokenizer.add(character);
-                        //TODO the way I was thinking about this in the way this is currently set up would be to add until that character makes it not a number,
-                        // then remove that element, get the tokens for the elements leading up to it, then clear and add that element back into to the tokenizer.
-                        //problem is, the loop starts over by getting the next token, so what happens to the one we added back?
-                        //also crashes on '.5'
-                        if (!(tokenizer.isValid() && tokenizer.isNumber())) {
-                            tokenizer.removeLast(); 
+                    if(tokenizer.isNumber()) {  //check if first value is number
+                        reader.mark(255);
+                        intC = reader.read();
+                        if(intC != -1) {
+                            character = (char) intC;
+                            while(tokenizer.isNumber(character) && intC != -1) {
+                                tokenizer.add(character);
+                                reader.mark(255);
+                                intC = reader.read();
+                                character = (char) intC;
+                            }
+
+                            reader.reset();
                             result += tokenizer.getToken();
                             tokenizer.clear();
-                            tokenizer.add(character);
-                            break;
                         }
                         
+                        continue;
+                    }
+
+                    if(tokenizer.isIdentifier()) {  //check if first value is number
+                        reader.mark(255);
+                        intC = reader.read();
+                        if(intC != -1) {
+                            character = (char) intC;
+                            while(tokenizer.isIdentifier(character) && !Character.isWhitespace(character) && intC != -1) {
+                                tokenizer.add(character);
+                                reader.mark(255);
+                                intC = reader.read();
+                                character = (char) intC;
+                            }
+
+                            if(tokenizer.getString().equals("System") && character == '.') {
+                                tokenizer.add(character);
+                                reader.mark(255);
+                                while(!tokenizer.getString().equals("System.out.println") && intC != -1) {
+                                    intC = reader.read();
+                                    tokenizer.add((char)intC);
+                                }
+
+                                if(tokenizer.getString().equals("System.out.println")) {
+                                    result += "<TPrint>";
+                                    tokenizer.clear();
+                                }
+                            } else {
+                                reader.reset();
+                                result += tokenizer.getToken();
+                                tokenizer.clear();
+                            }
+                        }
                         
+                        continue;
                     }
                 }
-
-                //HERE WAS WHERE I WAS WORKING.
             }
         }
         catch(IOException ex) {}

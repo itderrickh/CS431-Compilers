@@ -1,7 +1,7 @@
 public class Main {
     public static void main(String[] args) {
         Tokenizer t = Tokenizer.newTokenizer();
-        FileReader fr = FileReader.newFileReader("input1.txt", t);
+        FileReader fr = FileReader.newFileReader("prog3.txt", t);
 
         try {
             String result = fr.getTokens();
@@ -9,6 +9,5 @@ public class Main {
         } catch (Exception ex) {
             System.out.println("There was a problem scanning: " + t.getString());
         }
-        
     }
 }
