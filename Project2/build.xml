@@ -1,0 +1,35 @@
+<project>
+    <target name="clean">
+        <delete dir="build"/>
+
+        <!-- We don't want these files hanging out otherwise rebuilding will fail -->
+        <delete dir="src/Project2" />
+    </target>
+
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+
+        <!-- Generate all the sable cc classes -->
+        <java jar="sablecc.jar" fork="true">
+            <arg line="Proj2.js -d src" />
+        </java>
+
+        <!-- Don't forget to bring the lexer data file. -->
+        <copy todir="build/classes/Project2/lexer" file="src/Project2/lexer/lexer.dat" />
+
+        <!-- Compile all classes including sable cc ones -->
+        <javac srcdir="src" destdir="build/classes" includeantruntime="false"/>
+    </target>
+
+    <target name="run">
+        <java classname="Project2.Main" classpath="build/classes" input="prog1.txt" />
+        <java classname="Project2.Main" classpath="build/classes" input="prog2.txt" />
+        <java classname="Project2.Main" classpath="build/classes" input="prog3.txt" />
+    </target>
+    
+    <target name="all">
+    	<antcall target="clean"></antcall>
+        <antcall target="compile"></antcall>
+        <antcall target="run"></antcall>
+    </target>
+</project>
