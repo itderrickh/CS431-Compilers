@@ -6,7 +6,6 @@
     <target name="compile">
         <mkdir dir="build/classes"/>
         <javac srcdir="src" destdir="build/classes" includeantruntime="false"/>
-        <copy todir="build/classes" file="input1.txt" />
     </target>
 
     <target name="run">
