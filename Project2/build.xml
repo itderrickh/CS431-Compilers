@@ -22,9 +22,15 @@
     </target>
 
     <target name="run">
-        <java classname="Project2.Main" classpath="build/classes" input="prog1.txt" />
-        <java classname="Project2.Main" classpath="build/classes" input="prog2.txt" />
-        <java classname="Project2.Main" classpath="build/classes" input="prog3.txt" />
+        <java classname="Project2.Main" classpath="build/classes" input="prog1.txt">
+            <arg line="prog1.answer"/>
+        </java>
+        <java classname="Project2.Main" classpath="build/classes" input="prog2.txt">
+            <arg line="prog2.answer"/>
+        </java>
+        <java classname="Project2.Main" classpath="build/classes" input="prog3.txt">
+            <arg line="prog3.answer"/>
+        </java>
     </target>
     
     <target name="all">
