@@ -3,3 +3,4 @@ src/Project2/lexer
 src/Project2/node
 src/Project2/parser
 build
+!sablecc.jar
