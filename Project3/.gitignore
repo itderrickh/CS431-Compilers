@@ -1,0 +1,7 @@
+src/Project3/analysis
+src/Project3/lexer
+src/Project3/node
+src/Project3/parser
+src/Project3/interpreter/ProgExpr.java
+build
+!sablecc.jar
