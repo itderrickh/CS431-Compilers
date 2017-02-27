@@ -35,7 +35,7 @@
     </target>
 
     <target name="run">
-        <java classname="Project3.Main" classpath="${dir.build}" input="prog1.txt">
+        <java classname="Project3.Main" classpath="${dir.build}" input="input/expression.txt">
             <arg line="prog1.answer"/>
         </java>
 		
