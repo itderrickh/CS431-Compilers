@@ -42,10 +42,8 @@ public class Interpreter{
  	public int interpret(PrintStmt stm) {
  		ExpList exp = stm.exps;
 
-		if(exp instanceof LastExpList) {
-			System.out.println(this.interpret((LastExpList)exp));
-		} else if(exp instanceof MultipleExpressions) {
-			System.out.println(this.interpret((MultipleExpressions)exp));
+		if(exp instanceof Exps) {
+			System.out.println(this.interpret((Exps)exp));
 		}
 
  	   	return 0;
@@ -108,31 +106,18 @@ public class Interpreter{
 		return 0;
 	}
 
+	public String interpret(Exps list) {
+		if(list.expList == null) {
+			return this.interpret(list.exp) + "";
+		} else {
+			String result = "";
+			result += this.interpret(list.exp);
 
-	public String interpret(ExpList list) {
-		if(list instanceof MultipleExpressions) {
-			return this.interpret((MultipleExpressions)list);
-		} else if(list instanceof LastExpList) {
-			return this.interpret((LastExpList)list) + "";
+			if(list.expList instanceof Exps) {
+				return result += result + "\n" + this.interpret((Exps)list.expList);
+			}
+
+			return result;	
 		}
-
-		return "";
 	}
-
-	public String interpret(MultipleExpressions list) {
-    	String result = "";
-		result += this.interpret(list.exp);
-
-		if(list.expList instanceof MultipleExpressions) {
-			return result + "\n" + this.interpret((MultipleExpressions)list.expList);
-		} else if(list.expList instanceof LastExpList) {
-			return result + "\n" + this.interpret((LastExpList)list.expList);
-		}
-
-		return result;		
-  	}
-
- 	public int interpret(LastExpList list) {
-    	return this.interpret(list.head);
-  	}
 }

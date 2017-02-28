@@ -10,7 +10,7 @@
 		<delete dir="src/Project3/lexer" />
 		<delete dir="src/Project3/node" />
 		<delete dir="src/Project3/parser" />
-		<delete file="src/Project3/ProgExpr.java" />
+		<delete file="src/Project3/interpreter/ProgExpr.java" />
     </target>
 
     <target name="compile">
@@ -38,15 +38,27 @@
         <java classname="Project3.Main" classpath="${dir.build}" input="input/expression.txt">
             <arg line="prog1.answer"/>
         </java>
-		
-		<antcall target="compile2"></antcall>
-		
+    </target>
+
+    <target name="run2">
+        <antcall target="compile2"></antcall>
 		<java classname="Project3.interpreter.Interpret" classpath="${dir.build}" />
     </target>
-    
-    <target name="all">
-    	<antcall target="clean"></antcall>
+
+    <target name="part1">
+        <antcall target="clean"></antcall>
         <antcall target="compile"></antcall>
         <antcall target="run"></antcall>
+    </target>
+
+    <target name="part2">
+        <antcall target="compile2"></antcall>
+        <antcall target="run2"></antcall>
+    </target>
+    
+    
+    <target name="all">
+    	<antcall target="part1"></antcall>
+        <antcall target="part2"></antcall>
     </target>
 </project>

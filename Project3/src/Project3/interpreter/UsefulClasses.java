@@ -55,6 +55,17 @@ class IdExp extends Expression
     public IdExp(String id){
         this.id = id;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        IdExp exp = (IdExp) obj;
+        return this.id.equals(exp.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.id.hashCode();
+    }
 }
 
 class ArithExp extends Expression
@@ -81,20 +92,14 @@ class UnaryExp extends Expression
 
 abstract class ExpList {}
 
-class MultipleExpressions extends ExpList
-{
-    public ExpList expList;
+class Exps extends ExpList {
     public Expression exp;
-    public MultipleExpressions(Expression e, ExpList el) {
+    public Exps expList;
+    public Exps(Expression e) {
+        exp = e;
+    }
+    public Exps(Expression e, Exps el) {
         exp = e;
         expList = el;
-    }
-}
-
-class LastExpList extends ExpList
-{
-    public Expression head;
-    public LastExpList(Expression h){
-        head = h;
     }
 }

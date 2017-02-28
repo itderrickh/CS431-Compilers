@@ -33,10 +33,10 @@ public class Main{
                 StringBuilder sb = new StringBuilder();
                 sb.append("package Project3.interpreter;\n");
                 sb.append("public class ProgExpr {\n");
-                sb.append("\tpublic static Stmt program = new PrintStmt(new LastExpList(new NumExp(30)));\n");
-                //sb.append("\tpublic static Stmt program =");
-                //sb.append(rcp.toString());
-                //sb.append(";\n");
+                //sb.append("\tpublic static Stmt program = new PrintStmt(new Exps(new NumExp(30)));\n");
+                sb.append("\tpublic static Stmt program = ");
+                sb.append(rcp.toString());
+                sb.append(";\n");
                 sb.append("}");
 
                 FileWriter.writeToFile("src/Project3/interpreter/ProgExpr.java", sb.toString());
