@@ -73,7 +73,7 @@ class ArithExp extends Expression
     public Expression left;
     public String operand;
     public Expression right;
-    public ArithExp(Expression l, String o, Expression r) {
+    public ArithExp(String o, Expression l, Expression r) {
         left = l;
         operand = o;
         right = r;

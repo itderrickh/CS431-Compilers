@@ -1,5 +1,7 @@
 package Project3;
 
+import com.sun.media.jfxmedia.events.NewFrameEvent;
+
 import Project3.lexer.*;
 import Project3.node.*;
 
@@ -16,7 +18,8 @@ public class RecursiveDescentParser {
     }
 
     private void error(String type) throws Exception {
-        throw new Exception("Unexpected token: " + this.currentToken.getText() + " expected: " + type);
+        //throw new Exception(this.representation);
+        //throw new Exception("Unexpected token: " + this.currentToken.getText() + " expected: " + type);
     }
 
     private void accept(Class t) throws Exception {
@@ -33,8 +36,7 @@ public class RecursiveDescentParser {
     private void statements() throws Exception {
         representation += "new Stmts(";
         this.statement();
-        this.getNextToken();
-        if(this.currentToken != null && !(this.currentToken instanceof EOF)) {
+        if(this.currentToken instanceof TSemicolon) {
             //There are more statements
             this.representation += ", ";
             this.accept(TSemicolon.class);
@@ -54,6 +56,7 @@ public class RecursiveDescentParser {
             this.getNextAndAccept(TMinus.class);
             //Get the - token
             this.getNextAndAccept(TMinus.class);
+            this.getNextToken();
             this.expression();
 
             representation += ")";
@@ -61,6 +64,7 @@ public class RecursiveDescentParser {
             representation += "new PrintStmt(";
             //Get the ( token
             this.getNextAndAccept(TLparen.class);
+            this.getNextToken();
             this.expressionList();
             //Get the ) token
             this.accept(TRparen.class);
@@ -72,8 +76,7 @@ public class RecursiveDescentParser {
     private void expressionList() throws Exception {
         this.representation += "new Exps(";
         this.expression();
-        this.getNextToken();
-        if(this.currentToken != null && !(this.currentToken instanceof TRparen)) {
+        if(this.currentToken instanceof TComma) {
             this.representation += ", ";
             this.accept(TComma.class);
             this.getNextToken();
@@ -83,27 +86,68 @@ public class RecursiveDescentParser {
         this.representation += ")";
     }
 
-    private void expression() throws Exception {
+    private String term() throws Exception {
+        String result = "";
+        String f1 = this.factor();
         this.getNextToken();
-        if(currentToken instanceof TId) {
-            this.representation += "new IdExp(\"" + currentToken.getText() + "\")";
-        } else if(currentToken instanceof TNumber) {
-            this.representation += "new NumExp(" + currentToken.getText() + ")";
-        } 
-        //Handle everthing else
-        else {
-            this.expression();
-            this.getNextToken();
-            if (this.currentToken instanceof TPlus ||
-                this.currentToken instanceof TMinus ||
-                this.currentToken instanceof TTimes ||
-                this.currentToken instanceof TDivide ||
-                this.currentToken instanceof TMod) {
-                this.binop();
-                this.expression();
-            } else if(this.currentToken instanceof TLt || this.currentToken instanceof TGt) {
-                this.unaryop();
+
+        if(currentToken instanceof TTimes || currentToken instanceof TDivide || currentToken instanceof TMod) {
+            while(currentToken instanceof TTimes || currentToken instanceof TDivide || currentToken instanceof TMod) {
+                if(currentToken instanceof TTimes) {
+                    this.getNextToken();
+                    result += "new ArithExp(\"*\", " + f1 + ", ";
+                    result += this.factor();
+                    result += ")"; 
+                } else if(currentToken instanceof TDivide) {
+                    this.getNextToken();
+                    result += "new ArithExp(\"/\", " + f1 + ", ";
+                    result += this.factor();
+                    result += ")"; 
+                } else if(currentToken instanceof TMod) {
+                    this.getNextToken();
+                    result += "new ArithExp(\"%\", " + f1 + ", ";
+                    result += this.factor();
+                    result += ")"; 
+                }
+
+                this.getNextToken();
             }
+        } else {
+            result += f1;
+        }
+        
+
+        return result;
+    }
+
+    private String factor() throws Exception {
+        if(currentToken instanceof TNumber) {
+            return "new NumExp(" + currentToken.getText() + ")";
+        } else if(currentToken instanceof TId) {
+            return "new IdExp(\"" + currentToken.getText() + "\")";
+        }
+
+        return "";
+    }
+
+    private void expression() throws Exception {
+        String t1 = this.term();
+        if(currentToken instanceof TMinus || currentToken instanceof TPlus) {
+            while(currentToken instanceof TMinus || currentToken instanceof TPlus) {
+                if(currentToken instanceof TMinus) {
+                    this.getNextToken();
+                    this.representation += "new ArithExp(\"-\", " + t1 + ", ";
+                    this.representation += this.term();
+                    this.representation += ")";
+                } else if(currentToken instanceof TPlus) {
+                    this.getNextToken();
+                    this.representation += "new ArithExp(\"+\", " + t1 + ", ";
+                    this.representation += this.term();
+                    this.representation += ")";
+                }
+            }
+        } else {
+            this.representation += t1;
         }
     }
 

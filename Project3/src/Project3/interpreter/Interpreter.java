@@ -41,7 +41,7 @@ public class Interpreter{
 	//evaluate the ExpList
  	public int interpret(PrintStmt stm) {
  		ExpList exp = stm.exps;
-
+		
 		if(exp instanceof Exps) {
 			System.out.println(this.interpret((Exps)exp));
 		}
@@ -114,7 +114,7 @@ public class Interpreter{
 			result += this.interpret(list.exp);
 
 			if(list.expList instanceof Exps) {
-				return result += result + "\n" + this.interpret((Exps)list.expList);
+				return result + "\n" + this.interpret((Exps)list.expList);
 			}
 
 			return result;	
