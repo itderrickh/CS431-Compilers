@@ -68,6 +68,7 @@ public class RecursiveDescentParser {
             this.expressionList();
             //Get the ) token
             this.accept(TRparen.class);
+            this.getNextToken();
 
             representation += ")";
         }
@@ -90,6 +91,17 @@ public class RecursiveDescentParser {
         String result = "";
         String f1 = this.factor();
         this.getNextToken();
+
+        //Handle UnaryExp
+        if(currentToken instanceof TGt) {
+            this.getNextAndAccept(TGt.class);
+            f1 = "new UnaryExp(\">>\", " + f1 + ")";
+            this.getNextToken();
+        } else if(currentToken instanceof TLt) {
+            this.getNextAndAccept(TLt.class);
+            f1 = "new UnaryExp(\"<<\", " + f1 + ")";
+            this.getNextToken();
+        }
 
         if(currentToken instanceof TTimes || currentToken instanceof TDivide || currentToken instanceof TMod) {
             while(currentToken instanceof TTimes || currentToken instanceof TDivide || currentToken instanceof TMod) {
@@ -121,17 +133,30 @@ public class RecursiveDescentParser {
     }
 
     private String factor() throws Exception {
+        String result = "";
         if(currentToken instanceof TNumber) {
-            return "new NumExp(" + currentToken.getText() + ")";
+            result += "new NumExp(" + currentToken.getText() + ")";
         } else if(currentToken instanceof TId) {
-            return "new IdExp(\"" + currentToken.getText() + "\")";
+            result += "new IdExp(\"" + currentToken.getText() + "\")";
         }
 
-        return "";
+        return result;
     }
 
     private void expression() throws Exception {
         String t1 = this.term();
+
+        //Handle UnaryExp
+        if(currentToken instanceof TGt) {
+            this.getNextAndAccept(TGt.class);
+            t1 = "new UnaryExp(\">>\", " + t1 + ")";
+            this.getNextToken();
+        } else if(currentToken instanceof TLt) {
+            this.getNextAndAccept(TLt.class);
+            t1 = "new UnaryExp(\"<<\", " + t1 + ")";
+            this.getNextToken();
+        }
+
         if(currentToken instanceof TMinus || currentToken instanceof TPlus) {
             while(currentToken instanceof TMinus || currentToken instanceof TPlus) {
                 if(currentToken instanceof TMinus) {

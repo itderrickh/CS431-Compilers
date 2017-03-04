@@ -84,7 +84,7 @@ class UnaryExp extends Expression
 {
     public Expression left;
     public String operand;
-    public UnaryExp(Expression l, String o) {
+    public UnaryExp(String o, Expression l) {
         left = l;
         operand = o;
     }
