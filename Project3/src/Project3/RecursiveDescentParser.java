@@ -1,7 +1,5 @@
 package Project3;
 
-import com.sun.media.jfxmedia.events.NewFrameEvent;
-
 import Project3.lexer.*;
 import Project3.node.*;
 
@@ -18,8 +16,7 @@ public class RecursiveDescentParser {
     }
 
     private void error(String type) throws Exception {
-        //throw new Exception(this.representation);
-        //throw new Exception("Unexpected token: " + this.currentToken.getText() + " expected: " + type);
+        throw new Exception("Unexpected token: " + this.currentToken.getText() + " expected: " + type);
     }
 
     private void accept(Class t) throws Exception {
