@@ -176,16 +176,6 @@ public class RecursiveDescentParser {
         }
     }
 
-    private void unaryop() throws Exception {
-        if(this.currentToken instanceof TLt) {
-            //Handle the < token
-            this.getNextAndAccept(TLt.class);
-        } else if(this.currentToken instanceof TGt) {
-            //Handle the > token
-            this.getNextAndAccept(TGt.class);
-        }
-    }
-
     private void binop() throws Exception {
         if(this.currentToken instanceof TPlus) {
             //Handle the < token
