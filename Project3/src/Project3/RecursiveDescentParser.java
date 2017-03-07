@@ -135,6 +135,9 @@ public class RecursiveDescentParser {
             result += "new NumExp(" + currentToken.getText() + ")";
         } else if(currentToken instanceof TId) {
             result += "new IdExp(\"" + currentToken.getText() + "\")";
+        } else {
+            //It should error and say looking for identifier
+            this.error("number or identifier");
         }
 
         return result;
