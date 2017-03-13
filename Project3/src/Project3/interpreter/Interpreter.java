@@ -82,15 +82,15 @@ public class Interpreter{
 
 	public int interpret(ArithExp exp) {
 		if(exp.operand == "*") {
-			return this.interpret(exp.left) * this.interpret(exp.right);
+			return this.interpret(exp.right) * this.interpret(exp.left);
 		} else if(exp.operand == "/") {
-			return this.interpret(exp.left) / this.interpret(exp.right);
+			return this.interpret(exp.right) / this.interpret(exp.left);
 		} else if(exp.operand == "+") {
-			return this.interpret(exp.left) + this.interpret(exp.right);
+			return this.interpret(exp.right) + this.interpret(exp.left);
 		} else if(exp.operand == "-") {
-			return this.interpret(exp.left) - this.interpret(exp.right);
+			return this.interpret(exp.right) - this.interpret(exp.left);
 		} else if(exp.operand == "%") {
-			return this.interpret(exp.left) % this.interpret(exp.right);
+			return this.interpret(exp.right) % this.interpret(exp.left);
 		}
 
 		return 0;

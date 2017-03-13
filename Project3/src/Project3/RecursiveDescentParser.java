@@ -86,6 +86,7 @@ public class RecursiveDescentParser {
 
     private String term() throws Exception {
         String result = "";
+        String endToken = "";
         String f1 = this.factor();
         this.getNextToken();
 
@@ -104,28 +105,30 @@ public class RecursiveDescentParser {
             while(currentToken instanceof TTimes || currentToken instanceof TDivide || currentToken instanceof TMod) {
                 if(currentToken instanceof TTimes) {
                     this.getNextToken();
-                    result += "new ArithExp(\"*\", " + f1 + ", ";
+                    result += "new ArithExp(\"*\", ";
                     result += this.factor();
-                    result += ")"; 
+                    result += ", ";
+                    endToken += ")"; 
                 } else if(currentToken instanceof TDivide) {
                     this.getNextToken();
-                    result += "new ArithExp(\"/\", " + f1 + ", ";
+                    result += "new ArithExp(\"/\", ";
                     result += this.factor();
-                    result += ")"; 
+                    result += ", ";
+                    endToken += ")"; 
                 } else if(currentToken instanceof TMod) {
                     this.getNextToken();
-                    result += "new ArithExp(\"%\", " + f1 + ", ";
+                    result += "new ArithExp(\"%\", ";
                     result += this.factor();
-                    result += ")"; 
+                    result += ", ";
+                    endToken += ")"; 
                 }
 
                 this.getNextToken();
             }
-        } else {
-            result += f1;
         }
         
-
+        result += f1;
+        result += endToken;
         return result;
     }
 
@@ -145,6 +148,7 @@ public class RecursiveDescentParser {
 
     private void expression() throws Exception {
         String t1 = this.term();
+        String endToken = "";
 
         //Handle UnaryExp
         if(currentToken instanceof TGt) {
@@ -161,19 +165,24 @@ public class RecursiveDescentParser {
             while(currentToken instanceof TMinus || currentToken instanceof TPlus) {
                 if(currentToken instanceof TMinus) {
                     this.getNextToken();
-                    this.representation += "new ArithExp(\"-\", " + t1 + ", ";
+                    this.representation += "new ArithExp(\"-\", ";
                     this.representation += this.term();
-                    this.representation += ")";
+                    this.representation += ", ";
+
+                    endToken += ")";
                 } else if(currentToken instanceof TPlus) {
                     this.getNextToken();
-                    this.representation += "new ArithExp(\"+\", " + t1 + ", ";
+                    this.representation += "new ArithExp(\"+\", ";
                     this.representation += this.term();
-                    this.representation += ")";
+                    this.representation += ", ";
+
+                    endToken += ")";
                 }
             }
-        } else {
-            this.representation += t1;
         }
+
+        this.representation += t1;
+        this.representation += endToken;
     }
 
     private void binop() throws Exception {
