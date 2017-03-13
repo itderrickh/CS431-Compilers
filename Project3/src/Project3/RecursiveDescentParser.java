@@ -21,7 +21,8 @@ public class RecursiveDescentParser {
 
     private void accept(Class t) throws Exception {
         if(!(this.currentToken.getClass() == t)) {
-            this.error(t.toString());
+            Object c = t.newInstance();
+            this.error(((Token)c).getText());
         }
     }
 
