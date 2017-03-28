@@ -32,7 +32,7 @@
     </target>
 
     <target name="run">
-        <java classname="ProjFour.Main" classpath="${dir.build}" input="testone.txt">
+        <java classname="ProjFour.Main" classpath="${dir.build}" input="input/testone.txt">
         </java>
     </target>
     

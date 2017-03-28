@@ -2,10 +2,12 @@ Package ProjFour;
 
 Helpers
     sp  = ' ';
+    enter = 13;
+    lf = 10; 
+    tab = 9;
     number = ['0'..'9'];
     letter = ['a'..'z'] | ['A'..'Z'];
     alphanumeric = letter | number;
-    anychars = [35..255]+;
     underscore = '_';
     digit = number+;
     dot = '.';
@@ -13,11 +15,7 @@ Helpers
     rb = ']';
 
 Tokens
-    id = letter (letter | number | underscore)*;
-    realnum = digit+ dot digit+;
-    anychars = anychars;
-    whitespace = sp+;
-    intnum = digit+;
+    blank = (sp | enter | lf| tab)+;
     begin = 'BEGIN';
     end = 'END';
     clas = 'CLASS';
@@ -60,12 +58,15 @@ Tokens
     exc = '!';
     period = dot;
     comma = ',';
-    dblquote = '\"';
+    dblquote = '"';
     subset = (lb digit+ rb)?;
+    id = letter (letter | number | underscore)*;
+    realnum = digit+ dot digit+;
+    intnum = digit+;
+    anychar = [35..255];
 
 Ignored Tokens
-  whitespace;
-
+  blank;
 
 Productions
     prog = begin classmethodstmts end;
@@ -118,7 +119,7 @@ Productions
     breakpart = break semicolon;
     morecases = case lparen intnum rparen colon stmtseq breakpart?;
     stmt = {sfirst} id subset assign expr |
-           {ssecond} id subset assign dblquote anychars [enddbl]:dblquote |
+           {ssecond} id subset assign dblquote anychar+ [enddbl]:dblquote |
            {sthird} id idtail* colon type subset |
            {sfourth} if lparen boolean rparen then lcurly stmtseq rcurly |
            {sfifth} if lparen boolean rparen then [lcone]:lcurly [sone]:stmtseq [rcone]:rcurly else [lctwo]:lcurly [stwo]:stmtseq [rctwo]:rcurly |
