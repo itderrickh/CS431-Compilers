@@ -59,7 +59,7 @@ Tokens
     period = dot;
     comma = ',';
     dblquote = '"';
-    subset = (lb digit+ rb)?;
+    subset = lb digit+ rb;
     id = letter (letter | number | underscore)*;
     realnum = digit+ dot digit+;
     intnum = digit+;
@@ -96,9 +96,9 @@ Productions
             {fsecond} minus factor |
             {fthird} intnum |
             {ffourth} realnum |
-            {ffifth} id subset |
+            {ffifth} id subset? |
             {fseventh} id lparen varlisttwo rparen |
-            {feighth} id lbrace intnum rbrace period [nextid]:id lparen varlisttwo rparen;
+            {feighth} id subset? period [nextid]:id lparen varlisttwo rparen;
 
     term = {tfirst} term multop factor |
            {tsecond} factor;
@@ -109,33 +109,34 @@ Productions
                  {blank} ;
     varlisttail = {tailemp} comma id colon type |
                   {largetail} comma id colon type lbrace intnum rbrace ;
-    varlist = id colon type subset varlisttail* |
+    varlist = id colon type subset? varlisttail* |
               {bl} ;
     idtail = comma id;
     stmtexprtail = {ipp} id plus [dblplus]:plus |
                    {imm} id minus [dblminus]:minus |
-                   {exp} expr;
+                   {exp} id assign expr;
     stmtdotidtail = period id lparen varlisttwo rparen;
     breakpart = break semicolon;
     morecases = case lparen intnum rparen colon stmtseq breakpart?;
-    stmt = {sfirst} id subset assign expr |
-           {ssecond} id subset assign dblquote anychar+ [enddbl]:dblquote |
-           {sthird} id idtail* colon type subset |
+    stmt = {sfirst} id subset? assign expr semicolon |
+           {ssecond} id subset? assign dblquote anychar+ [enddbl]:dblquote semicolon |
+           {sthird} id idtail* colon type subset? semicolon |
            {sfourth} if lparen boolean rparen then lcurly stmtseq rcurly |
            {sfifth} if lparen boolean rparen then [lcone]:lcurly [sone]:stmtseq [rcone]:rcurly else [lctwo]:lcurly [stwo]:stmtseq [rctwo]:rcurly |
            {ssixth} while lparen boolean rparen lcurly stmtseq rcurly |
            {sseventh} for lparen type? id assign expr [sone]:semicolon boolean [stwo]:semicolon stmtexprtail lcurly stmtseq rcurly |
-           {seighth} id subset assign get lparen rparen semicolon |
-           {sninth} put lparen id subset rparen semicolon |
-           {stenth} id subset plus [dblplus]:plus |
-           {seleven} id subset minus [dblminus]:minus |
-           {stwelve} id subset assign new [rid]:id lparen rparen semicolon |
+           {seighth} id subset? assign get lparen rparen semicolon |
+           {sninth} put lparen id subset? rparen semicolon |
+           {stenth} id subset? plus [dblplus]:plus semicolon |
+           {seleven} id subset? minus [dblminus]:minus semicolon |
+           {stwelve} id subset? assign new [rid]:id lparen rparen semicolon |
            {sthirteen} id lparen varlisttwo rparen semicolon |
-           {sfourteen} id subset period [idtwo]:id lparen varlisttwo rparen stmtdotidtail* semicolon |
+           {sfourteen} id subset? period [idtwo]:id lparen varlisttwo rparen stmtdotidtail* semicolon |
            {sfifteen} return expr semicolon |
-           {ssixteen} id subset assign boolean semicolon |
+           {ssixteen} id subset? assign boolean semicolon |
            {sseventeen} switch lparen expr rparen [lcone]:lcurly case [lctwo]:lcurly intnum [rcone]:rcurly [colone]:colon [sone]:stmtseq breakpart? morecases* default [coltwo]:colon [stwo]:stmtseq [rctwo]:rcurly;
-    stmtseq = {ssfirst} stmt stmtseq | {sssecond} ;
+    stmtseq = {ssfirst} stmt stmtseq |
+              {sssecond} ;
     methodstmtseq = {mssfirst} type id lparen varlist rparen lcurly stmtseq rcurly |
                     {msssecond} id idtail* colon type semicolon;
 
@@ -143,6 +144,6 @@ Productions
                      {mssssecond} ;
     classmethodstmt = {cmsfirst} clas id lcurly methodstmtseqs rcurly |
                       {cmssecond} type id lparen varlist rparen lcurly stmtseq rcurly |
-                      {cmsthird} id idtail* colon type;
+                      {cmsthird} id idtail* colon type semicolon;
     classmethodstmts = {cmssfirst} classmethodstmts classmethodstmt |
                        {cmsssecond} ;
