@@ -73,7 +73,7 @@ Tokens
     gtequals = greater eq;
     ltequals = less eq;
     assign = col eq;
-    anychar = [35..255];
+    anychar = [35..255] | sp;
 
 Ignored Tokens
   blank;
@@ -116,8 +116,10 @@ Productions
                   {largetail} comma id colon type subset;
     varlist = id colon type subset? varlisttail* |
               {bl} ;
-    varlisttwotail = comma expr;
+    varlisttwotail = {sehrgut} comma expr |
+                     {worseidea} comma boolean;
     varlisttwo = {vlt} expr varlisttwotail* |
+                 {badidea} boolean varlisttwotail* |
                  {blank} ;
     idtail = comma id;
     breakpart = break semicolon;
