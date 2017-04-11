@@ -88,7 +88,10 @@ Productions
     methodstmtseqs = {msssfirst} methodstmtseqs methodstmtseq |
                      {mssssecond} ;
     methodstmtseq = {mssfirst} type id lparen varlist rparen lcurly stmtseq rcurly |
-                    {msssecond} id idtail* colon type semicolon;
+                    {msssecond} id idtail* colon type semicolon |
+                    {mmmthird} methodstmt;
+    methodstmt = {mfkfirst} methodexpr;
+    methodexpr = id subset? assign expr semicolon;
     stmtexprtail = {ipp} id plus [dblplus]:plus |
                    {imm} id minus [dblminus]:minus |
                    {exp} id assign expr;
@@ -98,8 +101,8 @@ Productions
     stmt = {sfirst} id subset? assign expr semicolon |
            {ssecond} id subset? assign dblquote anychars [enddbl]:dblquote semicolon |
            {sthird} id idtail* colon type subset? semicolon |
-           {sfourth} if lparen boolean rparen then lcurly stmtseq rcurly |
-           {sfifth} if lparen boolean rparen then lcurly stmtseq rcurly else [lctwo]:lcurly [stwo]:stmtseq [rctwo]:rcurly |
+           {sfourth} if lparen idbool rparen then lcurly stmtseq rcurly |
+           {sfifth} if lparen idbool rparen then lcurly stmtseq rcurly else [lctwo]:lcurly [stwo]:stmtseq [rctwo]:rcurly |
            {ssixth} while lparen boolean rparen lcurly stmtseq rcurly |
            {sseventh} for lparen type? id assign expr semicolon boolean [stwo]:semicolon stmtexprtail rparen lcurly stmtseq rcurly |
            {seighth} id subset? assign get lparen rparen semicolon |
@@ -140,6 +143,8 @@ Productions
            {lteql} ltequals |
            {gt} gt |
            {lt} lt;
+    idbool = {var} id |
+              {bool} boolean;
     boolean = {true} true |
               {false} false |
               {cond} expr cond [right]:expr;
