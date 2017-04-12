@@ -18,6 +18,7 @@ Helpers
     greater = '>';
     less = '<';
     col = ':';
+    anychar = [35..255] | sp;
 
 Tokens
     blank = (sp | enter | lf| tab)+;
@@ -65,6 +66,7 @@ Tokens
     comma = ',';
     dblquote = '"';
     subset = lb digit+ rb;
+    stringlit = '"' anychar+ '"';
     id = letter (letter | number | underscore)*;
     realnum = digit+ dot digit+;
     intnum = digit digit*;
@@ -73,7 +75,6 @@ Tokens
     gtequals = greater eq;
     ltequals = less eq;
     assign = col eq;
-    anychar = [35..255] | sp;
 
 Ignored Tokens
   blank;
@@ -99,7 +100,7 @@ Productions
     stmtseq = {ssfirst} stmt stmtseq |
               {sssecond} ;
     stmt = {sfirst} id subset? assign expr semicolon |
-           {ssecond} id subset? assign dblquote anychars [enddbl]:dblquote semicolon |
+           {ssecond} id subset? assign stringlit semicolon |
            {sthird} id idtail* colon type subset? semicolon |
            {sfourth} if lparen idbool rparen then lcurly stmtseq rcurly |
            {sfifth} if lparen idbool rparen then lcurly stmtseq rcurly else [lctwo]:lcurly [stwo]:stmtseq [rctwo]:rcurly |
@@ -159,4 +160,3 @@ Productions
            {tsecond} factor;
     expr = {efirst} expr addop term |
            {esecond} term;
-    anychars = anychar+;
