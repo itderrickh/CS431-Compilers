@@ -14,47 +14,119 @@ class PrintTree extends DepthFirstAdapter
 	}
 
     public void caseAProg(AProg node) {
-        node.getClassmethodstmts().apply(this);
+        //node.getClassmethodstmts().apply(this);
     }
 
     public void caseAIdtail(AIdtail node) {
         //Handle id tail
-        node.getId().apply(this);
+        //node.getId().apply(this);
     }
 
     /*****************************************
     * START STMT AREA                        *
     *****************************************/
     public void caseAAssignexpStmt(AAssignexpStmt node) {
-        node.getId().apply(this);
-        //Handle subset here
-        node.getExpr().apply(this);
 
-        //Send values to symbol table
     }
 
     public void caseAAssignstringStmt(AAssignstringStmt node) {
-        node.getId().apply(this);
-        //Handle subset here
-        node.getStringlit().apply(this);
 
-        //Send values to symbol table
     }
 
     public void caseAVariabledefStmt(AVariabledefStmt node) {
-        node.getId().apply(this);
-        node.getIdtail().apply(this);
-        //Put empty value in symbol table
+
     }
 
     public void caseAIfstmtStmt(AIfstmtStmt node) {
-        node.getIdbool().apply(this);
+
+    }
+
+    public void caseAWhilestmtStmt(AWhilestmtStmt node) {
+
+    }
+
+    public void caseAForstmtStmt(AForstmtStmt node) {
+
+    }
+
+    public void caseAGetcommandStmt(AGetcommandStmt node) {
+
+    }
+
+    public void caseAPutcommandStmt(APutcommandStmt node) {
+
+    }
+
+    public void caseAIncrementStmt(AIncrementStmt node) {
+
+    }
+
+    public void caseADecrementStmt(ADecrementStmt node) {
+
+    }
+
+    public void caseAAssignclassStmt(AAssignclassStmt node) {
+
+    }
+
+    public void caseAListexpStmt(AListexpStmt node) {
+
+    }
+
+    public void caseAAssignmethodStmt(AAssignmethodStmt node) {
+
+    }
+
+    public void caseAReturnstmtStmt(AReturnstmtStmt node) {
+
+    }
+
+    public void caseAAssignbooleanStmt(AAssignbooleanStmt node) {
+
+    }
+
+    public void caseASwitchstmtStmt(ASwitchstmtStmt node) {
+
     }
 
     /*****************************************
-    * END STMT AREA                        *
+    * END STMT AREA                          *
     *****************************************/
 
+    /*****************************************
+    * START TYPE AREA                        *
+    *****************************************/
+    public void caseAIntType(AIntType node) {
+
+    }
+
+    public void caseARealType(ARealType node) {
+
+    }
+
+    public void caseAStringType(AStringType node) {
+
+    }
+
+    public void caseABoolType(ABoolType node) {
+
+    }
+
+    public void caseAVoidType(AVoidType node) {
+
+    }
+
+    public void caseAIdType(AIdType node) {
+
+    }
+
+    /*****************************************
+    * END TYPE AREA                          *
+    *****************************************/
+
+    /*****************************************
+    * START TOKEN AREA                       *
+    *****************************************/
     public void caseTId(TId node) {
 
     }
@@ -74,6 +146,11 @@ class PrintTree extends DepthFirstAdapter
     public void caseTSubset(TSubset node) {
 
     }
+
+    /*****************************************
+    * END TOKEN AREA                         *
+    *****************************************/
+
 
 	//this gets called if the production is prog --> id digit
     //public void caseAFirstProg(AFirstProg node){
