@@ -1,0 +1,46 @@
+<project>
+	<property name="dir.build" value="build/classes" />
+    <property name="dir.source" value="src/Project5" />
+	
+    <target name="clean">
+        <delete dir="build"/>
+
+        <!-- We don't want these files hanging out otherwise rebuilding will fail -->
+        <delete dir="${dir.source}/analysis" />
+		<delete dir="${dir.source}/lexer" />
+		<delete dir="${dir.source}/node" />
+		<delete dir="${dir.source}/parser" />
+    </target>
+
+    <target name="generate">
+        <mkdir dir="build/classes"/>
+
+        <!-- Generate all the sable cc classes -->
+        <java jar="sablecc.jar" fork="true">
+            <arg line="Project5.js -d src" />
+        </java>
+    </target>
+
+    <target name="compile">
+        <!-- Compile all classes including sable cc ones -->
+        <javac srcdir="src" destdir="${dir.build}" includeantruntime="false">
+		</javac>
+
+        <!-- Don't forget to bring the lexer data file. -->
+        <copy todir="${dir.build}/Project5/lexer" file="${dir.source}/lexer/lexer.dat" />
+        <copy todir="${dir.build}/Project5/parser" file="${dir.source}/parser/parser.dat" />
+    </target>
+
+    <target name="run">
+        <java classname="Project5.Main" classpath="${dir.build}" input="input/prog1.txt">
+            <arg line="prog1.parse"/>
+        </java>
+    </target>
+    
+    <target name="all">
+    	<antcall target="clean"></antcall>
+        <antcall target="generate"></antcall>
+        <antcall target="compile"></antcall>
+        <antcall target="run"></antcall>
+    </target>
+</project>
