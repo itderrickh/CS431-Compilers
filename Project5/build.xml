@@ -32,8 +32,7 @@
     </target>
 
     <target name="run">
-        <java classname="Project5.Main" classpath="${dir.build}" input="input/prog1.txt">
-            <arg line="prog1.parse"/>
+        <java classname="Project5.Main" classpath="${dir.build}" input="input/testOne.txt">
         </java>
     </target>
     

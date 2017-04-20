@@ -102,10 +102,10 @@ Productions
     stmt = {assignexp} id subset? assign expr semicolon |
            {assignstring} id subset? assign stringlit semicolon |
            {variabledef} id idtail* colon type subset? semicolon |
-           {ifstmt} if lparen idbool rparen then lcurly stmtseq rcurly |
-           {ifelsestmt} if lparen idbool rparen then lcurly stmtseq rcurly else [lctwo]:lcurly [stwo]:stmtseq [rctwo]:rcurly |
-           {whilestmt} while lparen boolean rparen lcurly stmtseq rcurly |
-           {forstmt} for lparen type? id assign expr semicolon boolean [stwo]:semicolon stmtexprtail rparen lcurly stmtseq rcurly |
+           {if} if lparen idbool rparen then lcurly stmtseq rcurly |
+           {ifelse} if lparen idbool rparen then lcurly stmtseq rcurly else [lctwo]:lcurly [stwo]:stmtseq [rctwo]:rcurly |
+           {while} while lparen boolean rparen lcurly stmtseq rcurly |
+           {for} for lparen type? id assign expr semicolon boolean [stwo]:semicolon stmtexprtail rparen lcurly stmtseq rcurly |
            {getcommand} id subset? assign get lparen rparen semicolon |
            {putcommand} put lparen id subset? rparen semicolon |
            {increment} id subset? plus [dblplus]:plus semicolon |
@@ -113,9 +113,9 @@ Productions
            {assignclass} id subset? assign new [rid]:id lparen rparen semicolon |
            {listexp} id lparen varlisttwo rparen semicolon |
            {assignmethod} id subset? period [idtwo]:id lparen varlisttwo rparen stmtdotidtail* semicolon |
-           {returnstmt} return expr semicolon |
+           {return} return expr semicolon |
            {assignboolean} id subset? assign boolean semicolon |
-           {switchstmt} switch lparen expr rparen lcurly case [lctwo]:lparen intnum [rcone]:rparen colon stmtseq breakpart? morecases* default [coltwo]:colon [stwo]:stmtseq [rctwo]:rcurly;
+           {switch} switch lparen expr rparen lcurly case [lctwo]:lparen intnum [rcone]:rparen colon stmtseq breakpart? morecases* default [coltwo]:colon [stwo]:stmtseq [rctwo]:rcurly;
     varlisttail = {tailemp} comma id colon type |
                   {largetail} comma id colon type subset;
     varlist = id colon type subset? varlisttail* |
