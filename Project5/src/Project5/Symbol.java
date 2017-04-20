@@ -3,13 +3,17 @@ package Project5;
 import java.util.*;
 
 public class Symbol {
-    public String register;
-    public String identifier;
-    public Object value;
+    private String register;
+    private String identifier;
+    private Object value;
 
     public Symbol(String identifier, Object value) {
        this.register = "";
        this.identifier = identifier;
        this.value = value;
+    }
+
+    public Object getValue() {
+        return this.value;
     }
 }

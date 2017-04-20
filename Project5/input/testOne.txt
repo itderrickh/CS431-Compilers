@@ -2,5 +2,6 @@ BEGIN
     VOID MAIN() {
         x : INT;
         x := 4;
+        PUT(x);
     }
 END
