@@ -1,9 +1,7 @@
 BEGIN
-    VOID MAIN() {
-        x : INT;
-        x := 4;
-        PUT(x);
-        x--;
-        PUT(x);
+    VOID main() {
+        y : STRING;
+        y := "Hello World";
+        PUT(y);
     }
 END

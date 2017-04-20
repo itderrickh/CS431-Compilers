@@ -30,6 +30,10 @@ class PrintTree extends DepthFirstAdapter
 
         node.getClassmethodstmts().apply(this);
 
+        //Write the end of program command
+        mipsString.append("\tli $v0, 10\n").append("\tsyscall\n");
+
+        //Write the data section
         data.append(".data\n");
         data.append("\tNEWLINE: .asciiz \"\\n\"\n");
         for(String s : this.symbolTable.getKeys()) {
@@ -86,11 +90,28 @@ class PrintTree extends DepthFirstAdapter
 
         Object value = flapjacks.pop();
         String id = flapjacks.pop().toString();
-        symbolTable.update(id, new Symbol(id, value));
+        String type = "";
+        if(value instanceof Integer) {
+            type = "INTEGER";
+        } else if(value instanceof Double) {
+            type = "REAL";
+        } else if(value instanceof Boolean) {
+            type = "BOOLEAN";
+        }
+
+        //Check the value to make sure the old type still is legitimate
+        symbolTable.update(id, new Symbol(id, value, type));
     }
 
     public void caseAAssignstringStmt(AAssignstringStmt node) {
+        node.getId().apply(this);
+        node.getStringlit().apply(this);
 
+        String value = flapjacks.pop().toString();
+        String id = flapjacks.pop().toString();
+
+        //Check the value to make sure the old type still is legitimate
+        symbolTable.update(id, new Symbol(id, value, "STRING"));
     }
 
     public void caseAVariabledefStmt(AVariabledefStmt node) {
@@ -101,7 +122,7 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAIfStmt(AIfStmt node) {
-
+        
     }
 
     public void caseAWhileStmt(AWhileStmt node) {
@@ -113,7 +134,9 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAGetcommandStmt(AGetcommandStmt node) {
+        //Check the type of the id
 
+        //Write assembly code accordingly
     }
 
     public void caseAPutcommandStmt(APutcommandStmt node) {
@@ -122,10 +145,19 @@ class PrintTree extends DepthFirstAdapter
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
 
-        mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
-        //Note check type here
-        mipsString.append("\tli $v0 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
-        mipsString.append("\tsyscall\n");
+        String type = symbolTable.getValue(id).getType();
+        if(type.equals("STRING")) {
+            mipsString.append("\tli $v0 4\n").append("\tla $a0, ").append(id).append("\n");
+            mipsString.append("\tsyscall\n");
+        } else if(type.equals("INTEGER")) {
+            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tli $v0 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
+            mipsString.append("\tsyscall\n");
+        } else if(type.equals("REAL")) {
+
+        } else if(type.equals("BOOLEAN")) {
+
+        }
 
         //Print a newline bruh
         mipsString.append("\tli $v0, 4\n").append("\tla $a0, NEWLINE\n").append("\tsyscall\n");
@@ -268,44 +300,4 @@ class PrintTree extends DepthFirstAdapter
     public void caseTStringlit(TStringlit node) {
         flapjacks.push(node.getText());
     }
-
-    /*****************************************
-    * END TOKEN AREA                         *
-    *****************************************/
-
-
-	//this gets called if the production is prog --> id digit
-    //public void caseAFirstProg(AFirstProg node){
-    //    System.out.println("\tGot a first prog!");
-    //}
-
-	//prog --> lotnumbers
-    //public void caseASecondProg(ASecondProg node){
-    //    System.out.println("\tGot a second prog!");
-    //    node.getLotnumbers().apply(this);
-    //}
-
-	//prog --> id id digit digit
-    //public void caseAThirdProg(AThirdProg node){
-    //    System.out.println("\tGot a third prog!");
-    //    node.getEachsymbolisuniqueinaproduction().apply(this);
-    //    node.getSecondid().apply(this);
-    //    node.getDigitone().apply(this);
-    //    node.getDigittwo().apply(this);
-    //}
-
-	//if it reaches an id, print it off
-    //public void caseTId(TId node){
-	//	 System.out.println("\tGot myself an id: <"+node.getText()+">");
-	//}
-
-	//if it reaches a digit, print it off
-    //public void caseTDigit(TDigit node){
-	//	 System.out.println("\tGot myself a digit: <"+node.getText()+">");
-	//}
-
-	//if it reaches a ALotnumbers, print off the digit stored inside of it
-	//public void caseALotnumbers(ALotnumbers node){
-	//	System.out.println("\tPrinting the first number: "+node.getDigit());
-	//}
 }
