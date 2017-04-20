@@ -9,13 +9,40 @@ class PrintTree extends DepthFirstAdapter
 {
     private HashMap<String, Object> symbolTable = new HashMap<>();
     private Stack<Object> flapjacks = new Stack<Object>();
+    private SymbolTable symbolTable;
+    private StringBuilder mipsString;
+    private StringBuilder data;
+
+    private int nextRegister = 0;
 
  	public PrintTree() {
 		System.out.println("Start of the Printing Action");
+        this.symbolTable = new SymbolTable();
+        mipsString = new StringBuilder();
 	}
 
     public void caseAProg(AProg node) {
-        //node.getClassmethodstmts().apply(this);
+        mipsString.add(".text")
+        mipsString.add(".globl main")
+        node.getClassmethodstmts().apply(this);
+
+        data.add(/*Anything in the symbol table*/);
+
+        //Add all the string builders together and store in file
+    }
+
+    public void caseAMorestatementsClassmethodstmts(AMorestatementsClassmethodstmts node) {
+        node.getClassmethodstmts().apply(this);
+        node.getClassmethodstmt().apply(this);
+    }
+
+    public void caseAFunctiondefClassmethodstmt(AFunctiondefClassmethodstmt node) {
+        node.getStmtseq().apply(this);
+    }
+
+    public void caseAMorestatementsStmtseq(AMorestatementsStmtseq node) {
+        node.getStmt().apply(this);
+        node.getStmtseq().apply(this);
     }
 
     public void caseAIdtail(AIdtail node) {
@@ -27,7 +54,12 @@ class PrintTree extends DepthFirstAdapter
     * START STMT AREA                        *
     *****************************************/
     public void caseAAssignexpStmt(AAssignexpStmt node) {
+        mipsString.add("li ");
+        node.getId().apply(this);
+        mipsString.add(",");
+        node.getExpr().apply(this);
 
+        symbolTable.add(id, new Symbol(id, result));
     }
 
     public void caseAAssignstringStmt(AAssignstringStmt node) {
@@ -35,18 +67,18 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAVariabledefStmt(AVariabledefStmt node) {
+        node.getId().apply(this);
+    }
+
+    public void caseAIfStmt(AIfStmt node) {
 
     }
 
-    public void caseAIfstmtStmt(AIfstmtStmt node) {
+    public void caseAWhileStmt(AWhileStmt node) {
 
     }
 
-    public void caseAWhilestmtStmt(AWhilestmtStmt node) {
-
-    }
-
-    public void caseAForstmtStmt(AForstmtStmt node) {
+    public void caseAForStmt(AForStmt node) {
 
     }
 
@@ -78,7 +110,7 @@ class PrintTree extends DepthFirstAdapter
 
     }
 
-    public void caseAReturnstmtStmt(AReturnstmtStmt node) {
+    public void caseAReturnStmt(AReturnStmt node) {
 
     }
 
@@ -86,7 +118,7 @@ class PrintTree extends DepthFirstAdapter
 
     }
 
-    public void caseASwitchstmtStmt(ASwitchstmtStmt node) {
+    public void caseASwitchStmt(ASwitchStmt node) {
 
     }
 
@@ -123,6 +155,42 @@ class PrintTree extends DepthFirstAdapter
 
     /*****************************************
     * END TYPE AREA                          *
+    *****************************************/
+
+    /*****************************************
+    * START EXPR AREA                        *
+    *****************************************/
+
+    public void caseATermExpr(ATermExpr node) {
+        return node.getTerm().apply(this);
+    }
+
+    /*****************************************
+    * END EXPR AREA                          *
+    *****************************************/
+
+    /*****************************************
+    * START Term AREA                        *
+    *****************************************/
+
+    public void caseAFactorTerm(AFactorTerm node) {
+        return node.getFactor().apply(this);
+    }
+
+    /*****************************************
+    * END TERM AREA                          *
+    *****************************************/
+
+    /*****************************************
+    * START FACTOR AREA                        *
+    *****************************************/
+
+    public void caseAIntegerFactor(AIntegerFactor node) {
+        return node.getIntnum().apply(this);
+    }
+
+    /*****************************************
+    * END FACTOR AREA                          *
     *****************************************/
 
     /*****************************************

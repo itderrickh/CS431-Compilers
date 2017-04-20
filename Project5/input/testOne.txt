@@ -1,7 +1,6 @@
-x : REAL;
-x := 4.5;
-IF(TRUE) THEN {
-    x := 3.4 + 5.4;
-}
-
-PUT(x)
+BEGIN
+    VOID MAIN() {
+        x : INT;
+        x := 4;
+    }
+END
