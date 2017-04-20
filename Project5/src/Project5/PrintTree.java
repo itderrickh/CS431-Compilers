@@ -8,6 +8,7 @@ import java.util.*;
 class PrintTree extends DepthFirstAdapter
 {
     private HashMap<String, Object> symbolTable = new HashMap<>();
+    private Stack<Object> flapjacks = new Stack<Object>();
 
  	public PrintTree() {
 		System.out.println("Start of the Printing Action");
@@ -128,19 +129,19 @@ class PrintTree extends DepthFirstAdapter
     * START TOKEN AREA                       *
     *****************************************/
     public void caseTId(TId node) {
-
+        flapjacks.push(node.getText());
     }
 
     public void caseTIntnum(TIntnum node) {
-
+        flapjacks.push(Integer.parseInt(node.getText()));
     }
 
     public void caseTRealnum(TRealnum node) {
-
+        flapjacks.push(Double.parseDouble(node.getText()));
     }
 
     public void caseTStringlit(TStringlit node) {
-
+        flapjacks.push(node.getText());
     }
 
     public void caseTSubset(TSubset node) {
