@@ -3,5 +3,7 @@ BEGIN
         x : INT;
         x := 4;
         PUT(x);
+        x--;
+        PUT(x);
     }
 END

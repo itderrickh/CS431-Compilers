@@ -20,6 +20,10 @@ class PrintTree extends DepthFirstAdapter
         data = new StringBuilder();
 	}
 
+    public String getResult() {
+        return mipsString.toString() + "\n" + data.toString();
+    }
+
     public void caseAProg(AProg node) {
         mipsString.append(".text\n");
         mipsString.append(".globl main\n");
@@ -27,22 +31,19 @@ class PrintTree extends DepthFirstAdapter
         node.getClassmethodstmts().apply(this);
 
         data.append(".data\n");
+        data.append("\tNEWLINE: .asciiz \"\\n\"\n");
         for(String s : this.symbolTable.getKeys()) {
-            System.out.println(s);
-            
             Symbol value = this.symbolTable.getValue(s);
             
             if(value != null) {
                 data.append("\t");
 
                 if(value.getValue() instanceof String) {
-                    System.out.println("String: " + value.getValue().toString());
                     data.append(s).append(": ").append(".asciiz ").append(value.getValue().toString());
                 } else if(value.getValue() instanceof Double) {
                     System.out.println("Double: " + value.getValue().toString());
                     //Handle double differently
                 } else if(value.getValue() instanceof Integer) {
-                    System.out.println("Integer: " + value.getValue().toString());
                     data.append(s).append(": ").append(".word ").append(value.getValue().toString());
                 }
                 data.append("\n");
@@ -51,10 +52,6 @@ class PrintTree extends DepthFirstAdapter
                 System.out.println("Unassigned variable: " + s);
             }
         }
-
-        //Add all the string builders together and store in file
-        System.out.println(mipsString.toString());
-        System.out.println(data.toString());
     }
 
     public void caseAMorestatementsClassmethodstmts(AMorestatementsClassmethodstmts node) {
@@ -124,19 +121,38 @@ class PrintTree extends DepthFirstAdapter
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-        
+
         mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
         //Note check type here
         mipsString.append("\tli $v0 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
-        mipsString.append("\tsyscall");
+        mipsString.append("\tsyscall\n");
+
+        //Print a newline bruh
+        mipsString.append("\tli $v0, 4\n").append("\tla $a0, NEWLINE\n").append("\tsyscall\n");
+
+        this.nextRegister++;
     }
 
     public void caseAIncrementStmt(AIncrementStmt node) {
+        String currReg = "$t" + this.nextRegister;
 
+        node.getId().apply(this);
+        String id = flapjacks.pop().toString();
+
+        mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+        mipsString.append("\tadd ").append(currReg).append(", ").append(currReg).append(", 1\n");
+        mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
     }
 
     public void caseADecrementStmt(ADecrementStmt node) {
+        String currReg = "$t" + this.nextRegister;
 
+        node.getId().apply(this);
+        String id = flapjacks.pop().toString();
+
+        mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+        mipsString.append("\tsub ").append(currReg).append(", ").append(currReg).append(", 1\n");
+        mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
     }
 
     public void caseAAssignclassStmt(AAssignclassStmt node) {

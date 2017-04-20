@@ -15,7 +15,9 @@ public class Main{
             Parser parser = new Parser(lexer);
 
             Start ast = parser.parse();
-            ast.apply(new PrintTree());  //this is what gets the depth first search going
+            PrintTree tree = new PrintTree();
+            ast.apply(tree);  //this is what gets the depth first search going
+            FileWriter.writeToFile(arguments[0], tree.getResult());
       }
       catch(Exception e){ System.out.println("Error: " + e.getMessage()); }
    }

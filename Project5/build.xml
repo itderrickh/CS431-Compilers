@@ -33,6 +33,7 @@
 
     <target name="run">
         <java classname="Project5.Main" classpath="${dir.build}" input="input/testOne.txt">
+            <arg line="testOne.s"/>
         </java>
     </target>
     
