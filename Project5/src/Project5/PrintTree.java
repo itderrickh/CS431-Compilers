@@ -11,13 +11,18 @@ class PrintTree extends DepthFirstAdapter
     private SymbolTable symbolTable;
     private StringBuilder mipsString;
     private StringBuilder data;
-
+    private StringBuilder labels;
     private int nextRegister = 0;
+    private int ifLabelCounter = 0;
+    private int forLabelCounter = 0;
+    private int whileLabelCounter = 0;
+    private int methodLabelCounter = 0;
 
  	public PrintTree() {
         this.symbolTable = new SymbolTable();
         mipsString = new StringBuilder();
         data = new StringBuilder();
+        labels = new StringBuilder();
 	}
 
     public String getResult() {
@@ -32,6 +37,9 @@ class PrintTree extends DepthFirstAdapter
 
         //Write the end of program command
         mipsString.append("\tli $v0, 10\n").append("\tsyscall\n");
+
+        //append all the other labels for branches and the like
+        mipsString.append(labels);
 
         //Write the data section
         data.append(".data\n");
@@ -122,7 +130,11 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAIfStmt(AIfStmt node) {
-        
+        //get the condition
+        node.getIdbool().apply(this);
+        String condition = 
+
+        node.getStmtseq().apply(this);
     }
 
     public void caseAWhileStmt(AWhileStmt node) {
@@ -154,7 +166,9 @@ class PrintTree extends DepthFirstAdapter
             mipsString.append("\tli $v0 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("REAL")) {
-
+            //$f12 is used for printing floats, apparently
+            mipsString.append("\tmov.s $f12, ").append(id).append("\n");
+            mipsString.append("\tsyscall\n");
         } else if(type.equals("BOOLEAN")) {
 
         }
@@ -242,6 +256,33 @@ class PrintTree extends DepthFirstAdapter
 
     }
 
+    public void caseAVarIdbool(AVarIdbool node) {
+        node.getId().apply(this);
+    }
+
+    public void caseABoolIdbool(ABoolIdbool node) {
+        node.getBoolean().apply(this);
+    }
+
+    public void caseATrueBoolean(ATrueBoolean node) {
+        node.getTrue().apply(this);
+    }
+
+    public void caseAFalseBoolean(AFalseBoolean node) {
+        node.getFalse().apply(this);
+    }
+
+    public void caseACondBoolean(ACondBoolean node) {
+        node.getExpr().apply(this);
+        node.getCond().apply(this);
+        node.getRight().apply(this);
+        String rightExp = flapjacks.pop().toString();
+        String cond = flapjacks.pop().toString();
+        String leftExp = flapjacks.pop().toString();
+
+
+    }
+
     /*****************************************
     * END TYPE AREA                          *
     *****************************************/
@@ -283,6 +324,38 @@ class PrintTree extends DepthFirstAdapter
     *****************************************/
 
     /*****************************************
+    * START CONDITION AREA                   *
+    *****************************************/
+
+    public void caseADbleqlCond(ADbleqlCond node) {
+        node.getDoubleequals().apply(this);
+    }
+
+    public void caseANeqlCond(ANeqlCond node) {
+        node.getNotequals().apply(this);
+    }
+
+    public void caseAGteqlCond(AGteqlCond node) {
+        node.getGtequals().apply(this);
+    }
+
+    public void caseALteqlCond(ALteqlCond node) {
+        node.getLtequals().apply(this);
+    }
+
+    public void caseAGtCond(AGtCond node) {
+        node.getGt().apply(this);
+    }
+
+    public void caseALtCond(ALtCond node) {
+        node.getLt().apply(this);
+    }
+
+    /*****************************************
+    * END CONDITION AREA                     *
+    *****************************************/
+
+    /*****************************************
     * START TOKEN AREA                       *
     *****************************************/
     public void caseTId(TId node) {
@@ -300,4 +373,38 @@ class PrintTree extends DepthFirstAdapter
     public void caseTStringlit(TStringlit node) {
         flapjacks.push(node.getText());
     }
+
+    public void caseTTrue(TTrue node) {
+        flapjacks.push("1");
+    }
+
+    public void caseTFalse(TFalse node) {
+        flapjacks.push("0");
+    }
+
+    public void caseTDoubleequals(TDoubleequals node) {
+        flapjacks.push("beq");
+    }
+
+    public void caseTNotequals(TNotequals node) {
+        flapjacks.push("bne");
+    }
+
+    public void caseTGtequals(TGtequals node) {
+        flapjacks.push("sge");
+    }
+
+    public void caseTLtequals(TLtequals node) {
+        flapjacks.push("sle");
+    }
+
+    public void caseTGt(TGt node) {
+        flapjacks.push("sgt");
+    }
+
+    public void caseTLt(TLt node) {
+        flapjacks.push("slt");
+    }
+
+
 }
