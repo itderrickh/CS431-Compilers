@@ -1,4 +1,4 @@
-package Project5;
+package Project5.symbols;
 
 import java.util.*;
 
