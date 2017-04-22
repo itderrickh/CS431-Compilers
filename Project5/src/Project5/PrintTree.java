@@ -126,7 +126,6 @@ class PrintTree extends DepthFirstAdapter
     public void caseAAssignstringStmt(AAssignstringStmt node) {
         node.getId().apply(this);
         node.getStringlit().apply(this);
-
         String value = flapjacks.pop().toString();
         String id = flapjacks.pop().toString();
 
@@ -146,7 +145,7 @@ class PrintTree extends DepthFirstAdapter
     public void caseAIfStmt(AIfStmt node) {
         //get the condition
         node.getIdbool().apply(this);
-        String condition = 
+        //String condition = 
 
         node.getStmtseq().apply(this);
     }
@@ -304,7 +303,7 @@ class PrintTree extends DepthFirstAdapter
         String rightExp = flapjacks.pop().toString();
         String cond = flapjacks.pop().toString();
         String leftExp = flapjacks.pop().toString();
-
+        //mipsString.append(cond + )
 
     }
 
@@ -318,6 +317,19 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseATermExpr(ATermExpr node) {
         node.getTerm().apply(this);
+    }
+
+    public void caseAAddopExpr(AAddopExpr node) {
+        node.getExpr().apply(this);
+        node.getAddop().apply(this);
+        node.getTerm().apply(this);
+        Object rightExpr = flapjacks.pop();
+        String addOp = flapjacks.pop.toString();
+        Object leftExpr = flapjacks.pop();
+        mipsString.append(addOp + "$t" + nextRegister);
+        if (leftExpr instanceof String) {
+            Symbol sym = this.symbolTable.getValue(leftExpr);
+        }
     }
 
     /*****************************************
@@ -343,6 +355,15 @@ class PrintTree extends DepthFirstAdapter
     public void caseAIntegerFactor(AIntegerFactor node) {
         node.getIntnum().apply(this);
     }
+
+    public void caseARealFactor(ARealFactor node) {
+
+    }
+
+    public void caseAIdFactor(AIdFactor node) {
+        node.getId().apply(this);
+    }
+
 
     /*****************************************
     * END FACTOR AREA                          *
@@ -408,11 +429,11 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseTDoubleequals(TDoubleequals node) {
-        flapjacks.push("beq");
+        flapjacks.push("seq");
     }
 
     public void caseTNotequals(TNotequals node) {
-        flapjacks.push("bne");
+        flapjacks.push("sne");
     }
 
     public void caseTGtequals(TGtequals node) {
@@ -445,5 +466,21 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseTInt(TInt node) {
         flapjacks.push(node.getText());
+    }
+
+    public void caseTPlus(TPlus node) {
+        flapjacks.push("add");
+    }
+
+    public void caseTMinus(TMinus node) {
+        flapjacks.push("sub");
+    }
+
+    public void caseTTimes(TTimes node) {
+        flapjacks.push("mul");
+    }
+
+    public void caseTDivide(TDivide node) {
+        flapjacks.push("div");
     }
 }
