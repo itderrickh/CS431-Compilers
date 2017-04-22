@@ -1,7 +1,7 @@
 BEGIN
     VOID main() {
-        y : STRING;
-        y := "Hello World";
+        y : INT;
+        y := 3 + 2;
         PUT(y);
     }
 END
