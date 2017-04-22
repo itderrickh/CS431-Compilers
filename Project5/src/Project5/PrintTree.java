@@ -27,7 +27,7 @@ class PrintTree extends DepthFirstAdapter
 	}
 
     public String incrementRegister() {
-        String next = "$t" + this.nextRegister
+        String next = "$t" + this.nextRegister;
         //Loop back once we hit 7
         if(this.nextRegister > 7) {
             this.nextRegister = 0;
@@ -334,7 +334,7 @@ class PrintTree extends DepthFirstAdapter
         node.getAddop().apply(this);
         node.getTerm().apply(this);
         Object rightExpr = flapjacks.pop();
-        String addOp = flapjacks.pop.toString();
+        String addOp = flapjacks.pop().toString();
         Object leftExpr = flapjacks.pop();
         mipsString.append(addOp + "$t" + nextRegister);
         if (leftExpr instanceof String) {

@@ -1,5 +1,7 @@
 package Project5.symbols;
 
+import java.util.*;
+
 public class MethodTable {
     private HashMap<String, SymbolTable> methodTables = new HashMap<>();
     private HashMap<String, VariableTable> variableTable = new HashMap<>();
@@ -11,11 +13,11 @@ public class MethodTable {
         }
     }
 
-    private void add(String name, sym) {
+    public void add(String name, Symbol sym) {
         methodTables.get(name).add(name, sym);
     }
 
-    private void addToVariableTable(String variableTableName, String name, Symbol sym) {
+    public void addToVariableTable(String variableTableName, String name, Symbol sym) {
         variableTable.get(variableTableName).add(name, sym);
     }
 

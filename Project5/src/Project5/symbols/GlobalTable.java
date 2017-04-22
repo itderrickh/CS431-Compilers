@@ -1,5 +1,7 @@
 package Project5.symbols;
 
+import java.util.*;
+
 public class GlobalTable {
     private HashMap<String, SymbolTable> globalTable = new HashMap<>();
     private HashMap<String, ClassTable> classTables = new HashMap<>();
@@ -11,12 +13,12 @@ public class GlobalTable {
         }
     }
 
-    private void add(String name, sym) {
+    public void add(String name, Symbol sym) {
         globalTable.get(name).add(name, sym);
     }
 
-    private void addToClassTable(String classTableString name, Symbol sym) {
-        classTables.get(classTableString).add(name, sym);
+    public void addToClassTable(String classTable, String name, Symbol sym) {
+        classTables.get(classTable).add(name, sym);
     }
 
     public ClassTable getClassTable(String name) {
