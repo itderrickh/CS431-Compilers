@@ -26,6 +26,18 @@ class PrintTree extends DepthFirstAdapter
         labels = new StringBuilder();
 	}
 
+    public String incrementRegister() {
+        String next = "$t" + this.nextRegister
+        //Loop back once we hit 7
+        if(this.nextRegister > 7) {
+            this.nextRegister = 0;
+        } else {
+            this.nextRegister++;
+        }
+
+        return next;
+    }
+
     public String getResult() {
         return mipsString.toString() + "\n" + data.toString();
     }
@@ -160,8 +172,8 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseAGetcommandStmt(AGetcommandStmt node) {
         //Check the type of the id
-        String currReg = "$t" + this.nextRegister;
-        String nextReg = "$t" + (this.nextRegister + 1);
+        String currReg = this.incrementRegister();
+        String nextReg = this.incrementRegister();
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
         Symbol sym = this.symbolTable.getValue(id);
@@ -176,7 +188,7 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAPutcommandStmt(APutcommandStmt node) {
-        String currReg = "$t" + this.nextRegister;
+        String currReg = this.incrementRegister();
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
@@ -199,12 +211,10 @@ class PrintTree extends DepthFirstAdapter
 
         //Print a newline bruh
         mipsString.append("\tli $v0, 4\n").append("\tla $a0, NEWLINE\n").append("\tsyscall\n");
-
-        this.nextRegister++;
     }
 
     public void caseAIncrementStmt(AIncrementStmt node) {
-        String currReg = "$t" + this.nextRegister;
+        String currReg = this.incrementRegister();
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
@@ -215,7 +225,7 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseADecrementStmt(ADecrementStmt node) {
-        String currReg = "$t" + this.nextRegister;
+        String currReg = this.incrementRegister();
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
