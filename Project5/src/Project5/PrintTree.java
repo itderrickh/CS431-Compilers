@@ -355,7 +355,9 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append(nextRegister + ", ");
         mipsString.append(rightExpr.toString() + "\n");
         flapjacks.push(null);
+        String nextRegister = this.incrementRegister();
         flapjacks.push(nextRegister);
+
     }
 
     public void caseAPlusAddop(APlusAddop node) {
