@@ -19,6 +19,9 @@ public class Main{
             ast.apply(tree);  //this is what gets the depth first search going
             FileWriter.writeToFile(arguments[0], tree.getResult());
       }
-      catch(Exception e){ System.out.println("Error: " + e.getMessage()); }
+      catch(Exception e){
+            e.printStackTrace();
+            //System.out.println("Error: " + e.getMessage());
+      }
    }
 }

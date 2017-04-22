@@ -120,6 +120,7 @@ class PrintTree extends DepthFirstAdapter
         node.getId().apply(this);
         node.getExpr().apply(this);
 
+        String updateRegister = flapjacks.pop().toString();
         Object value = flapjacks.pop();
         String id = flapjacks.pop().toString();
         String type = "";
