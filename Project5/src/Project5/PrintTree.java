@@ -124,7 +124,6 @@ class PrintTree extends DepthFirstAdapter
             updateRegister = flapjacks.pop().toString();
         }
 
-        String updateRegister = flapjacks.pop().toString();
         Object value = flapjacks.pop();
         String id = flapjacks.pop().toString();
         String type = "";
@@ -137,10 +136,11 @@ class PrintTree extends DepthFirstAdapter
         }
 
         //Check the value to make sure the old type still is legitimate
-        symbolTable.update(id, new Symbol(id, value, type));
+        Symbol s = symbolTable.getValue(id);
+        s.setValue(value);
+        symbolTable.update(id, s);
         
         if (!updateRegister.equals("")) {
-            System.out.println(updateRegister);
             mipsString.append("\tsw ").append(updateRegister).append(", ").append(id).append("\n");
         }
     }
