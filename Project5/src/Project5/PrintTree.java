@@ -347,13 +347,13 @@ class PrintTree extends DepthFirstAdapter
         String addOp = flapjacks.pop().toString();
         Object leftExpr = flapjacks.pop();
         String nextRegister = this.incrementRegister();
-        mipsString.append("\t" + addOp + " " + nextRegister + ", ");
+        mipsString.append("\tadd " + nextRegister + ", ");
         mipsString.append(nextRegister + ", ");
-        mipsString.append(rightExpr.toString() + "\n");
+        mipsString.append(leftExpr.toString() + "\n");
 
         mipsString.append("\t" + addOp + " " + nextRegister + ", ");
         mipsString.append(nextRegister + ", ");
-        mipsString.append(leftExpr.toString() + "\n");
+        mipsString.append(rightExpr.toString() + "\n");
         flapjacks.push(null);
         flapjacks.push(nextRegister);
     }
