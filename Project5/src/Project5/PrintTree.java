@@ -334,12 +334,19 @@ class PrintTree extends DepthFirstAdapter
         node.getAddop().apply(this);
         node.getTerm().apply(this);
         Object rightExpr = flapjacks.pop();
-        String addOp = flapjacks.pop.toString();
+        String addOp = flapjacks.pop().toString();
         Object leftExpr = flapjacks.pop();
         mipsString.append(addOp + "$t" + nextRegister);
-        if (leftExpr instanceof String) {
-            Symbol sym = this.symbolTable.getValue(leftExpr);
-        }
+        mipsString.append(leftExpr.toString());
+        mipsString.append(rightExpr.toString());
+    }
+
+    public void caseAPlusAddop(APlusAddop node) {
+        node.getPlus().apply(this);
+    }
+
+    public void caseAMinusAddop(AMinusAddop node) {
+        node.getMinus().apply(this);
     }
 
     /*****************************************
@@ -372,6 +379,10 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseAIdFactor(AIdFactor node) {
         node.getId().apply(this);
+        String id = flapjacks.pop().toString();
+        String newRegister = "$t" + this.nextRegister;
+        mipsString.append("li " + newRegister + symbolTable.getValue(id));
+        flapjacks.push(newRegister);
     }
 
 
