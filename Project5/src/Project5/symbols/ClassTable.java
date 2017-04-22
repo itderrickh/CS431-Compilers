@@ -19,5 +19,7 @@ public class ClassTable {
         methodTable.get(methodTableName).add(name, sym);
     }
 
-    private 
+    public MethodTable getMethodTable(String name) {
+        return methodTable.get(name);
+    }
 }

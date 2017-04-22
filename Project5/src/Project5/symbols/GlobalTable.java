@@ -18,4 +18,8 @@ public class GlobalTable {
     private void addToClassTable(String classTableString name, Symbol sym) {
         classTables.get(classTableString).add(name, sym);
     }
+
+    public ClassTable getClassTable(String name) {
+        return classTables.get(name);
+    }
 }

@@ -18,4 +18,8 @@ public class MethodTable {
     private void addToVariableTable(String variableTableName, String name, Symbol sym) {
         variableTable.get(variableTableName).add(name, sym);
     }
+
+    public VariableTable getVariableTable(String name) {
+        return variableTable.get(name);
+    }
 }

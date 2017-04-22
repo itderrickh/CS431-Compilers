@@ -10,4 +10,8 @@ public class VariableTable {
     private void add(String name, Symbol sym) {
         variableTables.get(name).add(name, sym);
     }
+
+    private SymbolTable getTable(String name) {
+        return variableTables.get(name);
+    }
 }
