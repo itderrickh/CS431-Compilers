@@ -366,11 +366,11 @@ class PrintTree extends DepthFirstAdapter
         node.getMinus().apply(this);
     }
 
-    public caseAMultiplyMultop(AMultiplyMultop node) {
+    public void caseAMultiplyMultop(AMultiplyMultop node) {
         node.getTimes().apply(this);
     }
 
-    public caseADivideMultop(ADivideMultop node) {
+    public void caseADivideMultop(ADivideMultop node) {
         node.getDivide().apply(this);
     }
 
