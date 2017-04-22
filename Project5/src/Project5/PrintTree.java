@@ -42,7 +42,18 @@ class PrintTree extends DepthFirstAdapter
             if(value != null) {
                 data.append("\t");
 
-                if(value.getValue() instanceof String) {
+                if(value.getValue() == null) {
+                    //Set the variable to the default value
+                    if(value.getType().equals("INT")) {
+                        data.append(s).append(": ").append(".word 0");
+                    } else if(value.getType().equals("BOOLEAN")) {
+                        data.append(s).append(": ").append(".word 0");
+                    } else if(value.getType().equals("STRING")) {
+                        data.append(s).append(": ").append(".asciiz \"\"");
+                    } else if(value.getType().equals("REAL")) {
+                        //IDK
+                    }
+                } else if(value.getValue() instanceof String) {
                     data.append(s).append(": ").append(".asciiz ").append(value.getValue().toString());
                 } else if(value.getValue() instanceof Double) {
                     System.out.println("Double: " + value.getValue().toString());
@@ -53,7 +64,7 @@ class PrintTree extends DepthFirstAdapter
                 data.append("\n");
             } else {
                 //Turn this into a warning later
-                System.out.println("Unassigned variable: " + s);
+                System.out.println("Undeclared variable: " + s);
             }
         }
     }
@@ -92,7 +103,7 @@ class PrintTree extends DepthFirstAdapter
         String id = flapjacks.pop().toString();
         String type = "";
         if(value instanceof Integer) {
-            type = "INTEGER";
+            type = "INT";
         } else if(value instanceof Double) {
             type = "REAL";
         } else if(value instanceof Boolean) {
@@ -116,9 +127,11 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseAVariabledefStmt(AVariabledefStmt node) {
         node.getId().apply(this);
-
+        node.getType().apply(this);
+        String type = flapjacks.pop().toString();
         String id = flapjacks.pop().toString();
-        symbolTable.add(id, null);
+
+        symbolTable.add(id, new Symbol(id, null, type));
     }
 
     public void caseAIfStmt(AIfStmt node) {
@@ -135,8 +148,19 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseAGetcommandStmt(AGetcommandStmt node) {
         //Check the type of the id
+        String currReg = "$t" + this.nextRegister;
+        String nextReg = "$t" + (this.nextRegister + 1);
+        node.getId().apply(this);
+        String id = flapjacks.pop().toString();
+        Symbol sym = this.symbolTable.getValue(id);
 
-        //Write assembly code accordingly
+        if(sym.getType().equals("INT")) {
+            mipsString.append("\taddi $v0, $zero, 5\n\tsyscall\n");
+            mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
+            mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+        }    
+
+        this.nextRegister += 2;
     }
 
     public void caseAPutcommandStmt(APutcommandStmt node) {
@@ -147,11 +171,11 @@ class PrintTree extends DepthFirstAdapter
 
         String type = symbolTable.getValue(id).getType();
         if(type.equals("STRING")) {
-            mipsString.append("\tli $v0 4\n").append("\tla $a0, ").append(id).append("\n");
+            mipsString.append("\tli $v0, 4\n").append("\tla $a0, ").append(id).append("\n");
             mipsString.append("\tsyscall\n");
-        } else if(type.equals("INTEGER")) {
+        } else if(type.equals("INT")) {
             mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
-            mipsString.append("\tli $v0 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
+            mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("REAL")) {
 
@@ -219,27 +243,27 @@ class PrintTree extends DepthFirstAdapter
     * START TYPE AREA                        *
     *****************************************/
     public void caseAIntType(AIntType node) {
-
+        node.getInt().apply(this);
     }
 
     public void caseARealType(ARealType node) {
-
+        node.getReal().apply(this);
     }
 
     public void caseAStringType(AStringType node) {
-
+        node.getString().apply(this);
     }
 
     public void caseABoolType(ABoolType node) {
-
+        node.getBool().apply(this);
     }
 
     public void caseAVoidType(AVoidType node) {
-
+        //shrug
     }
 
     public void caseAIdType(AIdType node) {
-
+        //Don't handle this yet
     }
 
     /*****************************************
@@ -298,6 +322,22 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseTStringlit(TStringlit node) {
+        flapjacks.push(node.getText());
+    }
+
+    public void caseTBool(TBool node) {
+        flapjacks.push(node.getText());
+    }
+
+    public void caseTString(TString node) {
+        flapjacks.push(node.getText());
+    }
+
+    public void caseTReal(TReal node) {
+        flapjacks.push(node.getText());
+    }
+
+    public void caseTInt(TInt node) {
         flapjacks.push(node.getText());
     }
 }
