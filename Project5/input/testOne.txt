@@ -1,7 +1,8 @@
 BEGIN
     VOID main() {
         y : INT;
-        y := 3 - 2;
+        y := GET();
+        y := y - 2;
         PUT(y);
     }
 END

@@ -398,7 +398,7 @@ class PrintTree extends DepthFirstAdapter
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
         String newRegister = "$t" + this.nextRegister;
-        mipsString.append("li" + newRegister + symbolTable.getValue(id));
+        mipsString.append("\tlw " + newRegister + " " + id + "\n");
         flapjacks.push(newRegister);
     }
 
