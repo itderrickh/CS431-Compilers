@@ -5,14 +5,17 @@ public class GlobalTable {
     private HashMap<String, ClassTable> classTables = new HashMap<>();
 
     public void putClassTable(String name) {
-        classTables.put(name, new ClassTable());
+        ClassTable t = classTables.get(name);
+        if(t == null) {
+            classTables.put(name, new ClassTable());
+        }
     }
 
     private void add(String name, sym) {
         globalTable.get(name).add(name, sym);
     }
 
-    private void addToClassTable(String name, Symbol sym) {
-        classTables.get(name).add(name, sym);
+    private void addToClassTable(String classTableString name, Symbol sym) {
+        classTables.get(classTableString).add(name, sym);
     }
 }

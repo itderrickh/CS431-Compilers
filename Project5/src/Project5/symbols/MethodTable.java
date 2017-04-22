@@ -5,14 +5,17 @@ public class MethodTable {
     private HashMap<String, VariableTable> variableTable = new HashMap<>();
 
     public void putVariableTable(String name) {
-        variableTable.put(name, new VariableTable());
+        VariableTable t = variableTable.get(name);
+        if(t == null) {
+            variableTable.put(name, new VariableTable());
+        }
     }
 
     private void add(String name, sym) {
         methodTables.get(name).add(name, sym);
     }
 
-    private void addToVariableTable(String name, Symbol sym) {
-        variableTable.get(name).add(name, sym);
+    private void addToVariableTable(String variableTableName, String name, Symbol sym) {
+        variableTable.get(variableTableName).add(name, sym);
     }
 }
