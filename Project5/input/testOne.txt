@@ -1,11 +1,10 @@
 BEGIN
     VOID main() {
         y : INT;
-        y := GET();
-        IF(y == 7) THEN {
+        y := 0;
+        WHILE(y < 5) {
             PUT(y);
+            y++;
         }
-        y := y + 2;
-        PUT(y);
     }
 END

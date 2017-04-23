@@ -104,7 +104,7 @@ Productions
            {variabledef} id idtail* colon type subset? semicolon |
            {if} if lparen idbool rparen then lcurly stmtseq rcurly |
            {ifelse} if lparen idbool rparen then lcurly stmtseq rcurly else [lctwo]:lcurly [stwo]:stmtseq [rctwo]:rcurly |
-           {while} while lparen boolean rparen lcurly stmtseq rcurly |
+           {while} while lparen idbool rparen lcurly stmtseq rcurly |
            {for} for lparen type? id assign expr semicolon boolean [stwo]:semicolon stmtexprtail rparen lcurly stmtseq rcurly |
            {getcommand} id subset? assign get lparen rparen semicolon |
            {putcommand} put lparen id subset? rparen semicolon |

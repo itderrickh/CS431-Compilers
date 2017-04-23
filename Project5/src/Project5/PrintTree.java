@@ -30,7 +30,7 @@ class PrintTree extends DepthFirstAdapter
     public String incrementRegister() {
         String next = "$t" + this.nextRegister;
         //Loop back once we hit 7
-        if(this.nextRegister > 7) {
+        if(this.nextRegister >= 7) {
             this.nextRegister = 0;
         } else {
             this.nextRegister++;
@@ -180,10 +180,36 @@ class PrintTree extends DepthFirstAdapter
         node.getStmtseq().apply(this);
         mipsString.append("\tj ").append(bodyPart).append("\n");
         mipsString.append(bodyPart).append(": \n");
+
+        this.ifLabelCounter++;
+        this.mainBodyCounter++;
     }
 
     public void caseAWhileStmt(AWhileStmt node) {
+        String whileStmt = "while" + this.whileLabelCounter;
+        String bodyPart = "main" + this.mainBodyCounter;
+        //get the condition
+        node.getIdbool().apply(this);
 
+        //Pop something off the stack, an id or a register
+        String value = flapjacks.pop().toString();
+        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(whileStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append(" 0, ").append(bodyPart).append("\n");
+
+        mipsString.append(whileStmt).append(":\n");
+        
+        node.getStmtseq().apply(this);
+
+        //Repeating this might fix our issue of not having the correct register
+        node.getIdbool().apply(this);
+        value = flapjacks.pop().toString();
+        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(whileStmt).append("\n");
+
+        mipsString.append("\tj ").append(bodyPart).append("\n");
+        mipsString.append(bodyPart).append(": \n");
+
+        this.whileLabelCounter++;
+        this.mainBodyCounter++;
     }
 
     public void caseAForStmt(AForStmt node) {
@@ -193,7 +219,6 @@ class PrintTree extends DepthFirstAdapter
     public void caseAGetcommandStmt(AGetcommandStmt node) {
         //Check the type of the id
         String currReg = this.incrementRegister();
-        String nextReg = this.incrementRegister();
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
         Symbol sym = this.symbolTable.getValue(id);
@@ -203,8 +228,6 @@ class PrintTree extends DepthFirstAdapter
             mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
             mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
         }    
-
-        this.nextRegister += 2;
     }
 
     public void caseAPutcommandStmt(APutcommandStmt node) {
@@ -339,22 +362,22 @@ class PrintTree extends DepthFirstAdapter
         String reg3 = this.incrementRegister();
         //Load left and right into registers
         //Compare them into a new register, push register onto stack
-        if(rightExp instanceof Integer) {
-            mipsString.append("\tli ").append(reg1).append(", ").append(rightExp).append("\n");
-        } else if(rightExp instanceof Double) {
-
-        } else if(rightExp instanceof String) {
-            //Might have to handle id vs string here
-            mipsString.append("\tmove ").append(reg1).append(", ").append(rightExp).append("\n");
-        }
-
         if(leftExp instanceof Integer) {
-            mipsString.append("\tli ").append(reg2).append(", ").append(leftExp).append("\n");
+            mipsString.append("\tli ").append(reg1).append(", ").append(leftExp).append("\n");
         } else if(leftExp instanceof Double) {
 
         } else if(leftExp instanceof String) {
             //Might have to handle id vs string here
-            mipsString.append("\tmove ").append(reg2).append(", ").append(leftExp).append("\n");
+            mipsString.append("\tmove ").append(reg1).append(", ").append(leftExp).append("\n");
+        }
+
+        if(rightExp instanceof Integer) {
+            mipsString.append("\tli ").append(reg2).append(", ").append(rightExp).append("\n");
+        } else if(rightExp instanceof Double) {
+
+        } else if(rightExp instanceof String) {
+            //Might have to handle id vs string here
+            mipsString.append("\tmove ").append(reg2).append(", ").append(rightExp).append("\n");
         }
 
         mipsString.append("\t").append(cond).append(" ").append(reg3).append(", ").append(reg1).append(", ").append(reg2).append("\n");
