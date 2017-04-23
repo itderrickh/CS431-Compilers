@@ -12,7 +12,6 @@ class PrintTree extends DepthFirstAdapter
     private SymbolTable symbolTable;
     private StringBuilder mipsString;
     private StringBuilder data;
-    private StringBuilder labels;
     private int nextRegister = 0;
     private int ifLabelCounter = 0;
     private int forLabelCounter = 0;
@@ -24,7 +23,6 @@ class PrintTree extends DepthFirstAdapter
         this.symbolTable = new SymbolTable();
         mipsString = new StringBuilder();
         data = new StringBuilder();
-        labels = new StringBuilder();
 	}
 
     public String incrementRegister() {
@@ -278,22 +276,6 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
     }
 
-    public void caseAAssignclassStmt(AAssignclassStmt node) {
-
-    }
-
-    public void caseAListexpStmt(AListexpStmt node) {
-
-    }
-
-    public void caseAAssignmethodStmt(AAssignmethodStmt node) {
-
-    }
-
-    public void caseAReturnStmt(AReturnStmt node) {
-
-    }
-
     public void caseAAssignbooleanStmt(AAssignbooleanStmt node) {
 
     }
@@ -323,14 +305,6 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseABoolType(ABoolType node) {
         node.getBool().apply(this);
-    }
-
-    public void caseAVoidType(AVoidType node) {
-        //shrug
-    }
-
-    public void caseAIdType(AIdType node) {
-        //Don't handle this yet
     }
 
     public void caseAVarIdbool(AVarIdbool node) {
