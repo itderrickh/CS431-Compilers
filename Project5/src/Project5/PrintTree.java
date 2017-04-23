@@ -50,9 +50,6 @@ class PrintTree extends DepthFirstAdapter
         //Write the end of program command
         mipsString.append("\tli $v0, 10\n").append("\tsyscall\n");
 
-        //append all the other labels for branches and the like
-        mipsString.append(labels);
-
         //Write the data section
         data.append(".data\n");
         data.append("\tNEWLINE: .asciiz \"\\n\"\n");
@@ -71,13 +68,12 @@ class PrintTree extends DepthFirstAdapter
                     } else if(value.getType().equals("STRING")) {
                         data.append(s).append(": ").append(".asciiz \"\"");
                     } else if(value.getType().equals("REAL")) {
-                        //IDK
+                        data.append(s).append(": ").append(".double 0");
                     }
                 } else if(value.getValue() instanceof String) {
                     data.append(s).append(": ").append(".asciiz ").append(value.getValue().toString());
                 } else if(value.getValue() instanceof Double) {
-                    System.out.println("Double: " + value.getValue().toString());
-                    //Handle double differently
+                    data.append(s).append(": ").append(".double ").append(value.getValue().toString());
                 } else if(value.getValue() instanceof Integer) {
                     data.append(s).append(": ").append(".word ").append(value.getValue().toString());
                 }
@@ -107,11 +103,6 @@ class PrintTree extends DepthFirstAdapter
         node.getStmtseq().apply(this);
     }
 
-    public void caseAIdtail(AIdtail node) {
-        //Handle id tail
-        //node.getId().apply(this);
-    }
-
     /*****************************************
     * START STMT AREA                        *
     *****************************************/
@@ -130,8 +121,6 @@ class PrintTree extends DepthFirstAdapter
             type = "INT";
         } else if(value instanceof Double) {
             type = "REAL";
-        } else if(value instanceof Boolean) {
-            type = "BOOLEAN";
         }
 
         //Check the value to make sure the old type still is legitimate
@@ -150,8 +139,12 @@ class PrintTree extends DepthFirstAdapter
         String value = flapjacks.pop().toString();
         String id = flapjacks.pop().toString();
 
+        Symbol s = symbolTable.getValue(id);
+        s.setValue(value);
+        symbolTable.update(id, s);
+
         //Check the value to make sure the old type still is legitimate
-        symbolTable.update(id, new Symbol(id, value, "STRING"));
+        symbolTable.update(id, s);
     }
 
     public void caseAVariabledefStmt(AVariabledefStmt node) {
@@ -243,14 +236,14 @@ class PrintTree extends DepthFirstAdapter
             mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("REAL")) {
-            //$f12 is used for printing floats, apparently
             mipsString.append("\tmov.s $f12, ").append(id).append("\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("BOOLEAN")) {
-
+            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
+            mipsString.append("\tsyscall\n");
         }
 
-        //Print a newline bruh
         mipsString.append("\tli $v0, 4\n").append("\tla $a0, NEWLINE\n").append("\tsyscall\n");
     }
 
@@ -277,7 +270,13 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAAssignbooleanStmt(AAssignbooleanStmt node) {
+        node.getId().apply(this);
+        node.getBoolean().apply(this);
+        Object value = flapjacks.pop();
+        String id = flapjacks.pop().toString();
 
+        //Check the value to make sure the old type still is legitimate
+        symbolTable.update(id, new Symbol(id, value.toString(), "BOOLEAN"));
     }
 
     public void caseASwitchStmt(ASwitchStmt node) {
