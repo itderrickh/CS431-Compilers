@@ -17,6 +17,8 @@ class PrintTree extends DepthFirstAdapter
     private int forLabelCounter = 0;
     private int whileLabelCounter = 0;
     private int methodLabelCounter = 0;
+    private int caseLabelCounter = 0;
+    private int defaultLabelCounter = 0;
     private int mainBodyCounter = 0;
 
  	public PrintTree() {
@@ -225,7 +227,7 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
     }
 
-    public void caseAAssignStmtexprtail(ADecrementStmtexprtail node) {
+    public void caseAAssignStmtexprtail(AAssignStmtexprtail node) {
 
         //TODO: handle this
         node.getId().apply(this);
@@ -316,7 +318,42 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseASwitchStmt(ASwitchStmt node) {
+        //get the actual expression
+        node.getExpr().apply(this);
 
+        String caseExpr = flapjacks.pop().toString();
+        //get the first case number, and load it for comparison
+        node.getIntnum().apply(this);
+        String caseNum = flapjacks.pop().toString();
+        int caseStart = this.caseLabelCounter;
+        mipsString.append("\tbeq " + caseExpr + ", " + caseNum + " switch" + this.caseLabelCounter);
+        this.caseLabelCounter++;
+        //handle the rest of the cases
+        LinkedList<PMorecases> morecases = node.getMorecases();
+        for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
+            morecases.get(moreCaseIndex).getIntnum().apply(this);
+            String currentCaseNum = flapjacks.pop().toString();
+            mipsString.append("\tbeq " + caseExpr + ", " + currentCaseNum + " switch" + this.caseLabelCounter);
+            this.caseLabelCounter++;
+        }
+        mipsString.append("\tj default" + this.defaultLabelCounter);
+        for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
+            mipsString.append("\t" + caseStart + ":\n");
+            morecases.get(moreCaseIndex).getStmtseq().apply(this);
+            caseStart++;
+        }
+        mipsString.append("switch" + this.caseLabelCounter + ":\n");
+        //get the sequence for the first case
+        node.getStmtseq().apply(this);
+        if (node.getBreakpart() != null) {
+            mipsString.append("\tj main" + this.mainBodyCounter);
+        }
+        mipsString.append("\tdefault" + this.defaultLabelCounter + ":\n");
+        node.getStwo().apply(this);
+        String bodyPart = "main" + this.mainBodyCounter;
+        mipsString.append("\t" + bodyPart + ":\n");
+        this.mainBodyCounter++;
+        this.defaultLabelCounter++;
     }
 
     /*****************************************
