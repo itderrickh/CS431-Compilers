@@ -50,9 +50,6 @@ class PrintTree extends DepthFirstAdapter
         //Write the end of program command
         mipsString.append("\tli $v0, 10\n").append("\tsyscall\n");
 
-        //append all the other labels for branches and the like
-        mipsString.append(labels);
-
         //Write the data section
         data.append(".data\n");
         data.append("\tNEWLINE: .asciiz \"\\n\"\n");
@@ -417,6 +414,28 @@ class PrintTree extends DepthFirstAdapter
         node.getFactor().apply(this);
     }
 
+    public void caseAMultopTerm(AMultopTerm node) {
+        node.getTerm().apply(this);
+        node.getMultop().apply(this);
+        node.getFactor().apply(this);
+        Object rightFactor = flapjacks.pop();
+        String multOp = flapjacks.pop().toString();
+        Object leftTerm = flapjacks.pop();
+        String nextRegister = this.incrementRegister();
+        mipsString.append("\tadd " + nextRegister + ", ");
+        mipsString.append(nextRegister + ", ");
+        mipsString.append(leftTerm.toString() + "\n");
+
+        mipsString.append("\t" + multOp + " ");
+        mipsString.append(nextRegister + ", ");
+        mipsString.append(rightFactor.toString() + "\n");
+
+        //only move the lower register, because nobody needs more than 32 bits
+        mipsString.append("\tmflo "+ nextRegister + "\n");
+        flapjacks.push(null);
+        flapjacks.push(nextRegister);
+    }
+
     /*****************************************
     * END TERM AREA                          *
     *****************************************/
@@ -555,7 +574,7 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseTTimes(TTimes node) {
-        flapjacks.push("mul");
+        flapjacks.push("mult");
     }
 
     public void caseTDivide(TDivide node) {

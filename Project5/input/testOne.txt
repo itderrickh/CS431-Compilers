@@ -1,10 +1,11 @@
 BEGIN
     VOID main() {
         y : INT;
-        y := 0;
-        WHILE(y < 5) {
-            PUT(y);
-            y++;
-        }
+        y := 20;
+        z : INT;
+        z := 2;
+        x : INT;
+        x := y / z;
+        PUT(x);
     }
 END
