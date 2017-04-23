@@ -1,10 +1,7 @@
 BEGIN
     VOID main() {
-        y : INT;
-        y := 0;
-        WHILE(y < 5) {
-            PUT(y);
-            y++;
+        FOR(INT i := 0; i < 10; i++) {
+            PUT(i);
         }
     }
 END

@@ -203,8 +203,44 @@ class PrintTree extends DepthFirstAdapter
         this.mainBodyCounter++;
     }
 
-    public void caseAForStmt(AForStmt node) {
+    public void caseAIncrementStmtexprtail(AIncrementStmtexprtail node) {
+        String currReg = this.incrementRegister();
 
+        node.getId().apply(this);
+        String id = flapjacks.pop().toString();
+
+        mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+        mipsString.append("\tadd ").append(currReg).append(", ").append(currReg).append(", 1\n");
+        mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+    }
+
+    public void caseADecrementStmtexprtail(ADecrementStmtexprtail node) {
+        String currReg = this.incrementRegister();
+
+        node.getId().apply(this);
+        String id = flapjacks.pop().toString();
+
+        mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+        mipsString.append("\tsub ").append(currReg).append(", ").append(currReg).append(", 1\n");
+        mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+    }
+
+    public void caseAAssignStmtexprtail(ADecrementStmtexprtail node) {
+
+        //TODO: handle this
+        node.getId().apply(this);
+        node.getExpr().apply(this);
+    }
+
+    public void caseAForStmt(AForStmt node) {
+        node.getId().apply(this);
+        node.getExpr().apply(this);
+        //Do some assignment work here
+
+        node.getBoolean().apply(this);
+        node.getStmtexprtail().apply(this);
+
+        node.getStmtseq().apply(this);
     }
 
     public void caseAGetcommandStmt(AGetcommandStmt node) {
@@ -429,7 +465,7 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseARealFactor(ARealFactor node) {
-
+        node.getRealnum().apply(this);
     }
 
     public void caseAIdFactor(AIdFactor node) {
