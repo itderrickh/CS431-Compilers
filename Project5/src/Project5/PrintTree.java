@@ -18,6 +18,7 @@ class PrintTree extends DepthFirstAdapter
     private int forLabelCounter = 0;
     private int whileLabelCounter = 0;
     private int methodLabelCounter = 0;
+    private int mainBodyCounter = 0;
 
  	public PrintTree() {
         this.symbolTable = new SymbolTable();
@@ -165,11 +166,20 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAIfStmt(AIfStmt node) {
+        String ifStmt = "if" + this.ifLabelCounter;
+        String bodyPart = "main" + this.mainBodyCounter;
         //get the condition
         node.getIdbool().apply(this);
-        //String condition = 
 
+        //Pop something off the stack, an id or a register
+        String value = flapjacks.pop().toString();
+        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(ifStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append(" 0, ").append(bodyPart).append("\n");
+
+        mipsString.append(ifStmt).append(":\n");
         node.getStmtseq().apply(this);
+        mipsString.append("\tj ").append(bodyPart).append("\n");
+        mipsString.append(bodyPart).append(": \n");
     }
 
     public void caseAWhileStmt(AWhileStmt node) {
@@ -309,22 +319,46 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseATrueBoolean(ATrueBoolean node) {
-        node.getTrue().apply(this);
+        flapjacks.push(1);
     }
 
     public void caseAFalseBoolean(AFalseBoolean node) {
-        node.getFalse().apply(this);
+        flapjacks.push(0);
     }
 
     public void caseACondBoolean(ACondBoolean node) {
         node.getExpr().apply(this);
         node.getCond().apply(this);
         node.getRight().apply(this);
-        String rightExp = flapjacks.pop().toString();
+        Object rightExp = flapjacks.pop();
         String cond = flapjacks.pop().toString();
-        String leftExp = flapjacks.pop().toString();
-        //mipsString.append(cond + )
+        Object leftExp = flapjacks.pop();
 
+        String reg1 = this.incrementRegister();
+        String reg2 = this.incrementRegister();
+        String reg3 = this.incrementRegister();
+        //Load left and right into registers
+        //Compare them into a new register, push register onto stack
+        if(rightExp instanceof Integer) {
+            mipsString.append("\tli ").append(reg1).append(", ").append(rightExp).append("\n");
+        } else if(rightExp instanceof Double) {
+
+        } else if(rightExp instanceof String) {
+            //Might have to handle id vs string here
+            mipsString.append("\tmove ").append(reg1).append(", ").append(rightExp).append("\n");
+        }
+
+        if(leftExp instanceof Integer) {
+            mipsString.append("\tli ").append(reg2).append(", ").append(leftExp).append("\n");
+        } else if(leftExp instanceof Double) {
+
+        } else if(leftExp instanceof String) {
+            //Might have to handle id vs string here
+            mipsString.append("\tmove ").append(reg2).append(", ").append(leftExp).append("\n");
+        }
+
+        mipsString.append("\t").append(cond).append(" ").append(reg3).append(", ").append(reg1).append(", ").append(reg2).append("\n");
+        flapjacks.push(reg3);
     }
 
     /*****************************************

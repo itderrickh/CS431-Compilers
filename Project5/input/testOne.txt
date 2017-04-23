@@ -2,6 +2,9 @@ BEGIN
     VOID main() {
         y : INT;
         y := GET();
+        IF(y == 7) THEN {
+            PUT(y);
+        }
         y := y + 2;
         PUT(y);
     }
