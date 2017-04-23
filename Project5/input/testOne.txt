@@ -1,6 +1,5 @@
 BEGIN
     VOID main() {
-<<<<<<< HEAD
         y : INT;
         y := 20;
         z : INT;
@@ -8,10 +7,5 @@ BEGIN
         x : INT;
         x := y / z;
         PUT(x);
-=======
-        FOR(INT i := 0; i < 10; i++) {
-            PUT(i);
-        }
->>>>>>> origin/master
     }
 END
