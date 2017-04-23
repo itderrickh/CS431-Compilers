@@ -165,8 +165,8 @@ class PrintTree extends DepthFirstAdapter
 
         //Pop something off the stack, an id or a register
         String value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(ifStmt).append("\n");
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 0, ").append(bodyPart).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(ifStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
 
         mipsString.append(ifStmt).append(":\n");
         node.getStmtseq().apply(this);
@@ -186,8 +186,8 @@ class PrintTree extends DepthFirstAdapter
 
         //Pop something off the stack, an id or a register
         String value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(ifStmt).append("\n");
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 0, ").append(elseStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(ifStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(elseStmt).append("\n");
 
         mipsString.append(ifStmt).append(":\n");
         node.getStmtseq().apply(this);
@@ -211,8 +211,8 @@ class PrintTree extends DepthFirstAdapter
 
         //Pop something off the stack, an id or a register
         String value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(whileStmt).append("\n");
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 0, ").append(bodyPart).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(whileStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
 
         mipsString.append(whileStmt).append(":\n");
         
@@ -288,8 +288,8 @@ class PrintTree extends DepthFirstAdapter
 
         //Pop something off the stack, an id or a register
         value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(forStmt).append("\n");
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 0, ").append(bodyPart).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(forStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
 
         mipsString.append(forStmt).append(":\n");
         
@@ -302,7 +302,7 @@ class PrintTree extends DepthFirstAdapter
         //Repeating this might fix our issue of not having the correct register
         node.getBoolean().apply(this);
         String svalue = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(svalue).append(", ").append(" 1, ").append(forStmt).append("\n");
+        mipsString.append("\tbeq ").append(svalue).append(", ").append("1, ").append(forStmt).append("\n");
 
         mipsString.append("\tj ").append(bodyPart).append("\n");
         mipsString.append(bodyPart).append(": \n");
