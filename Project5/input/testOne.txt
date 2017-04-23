@@ -1,14 +1,7 @@
 BEGIN
     VOID main() {
-        y : INT;
-        y := 20;
-        x : INT;
-        x := 10;
-        
-        IF(y < 10) THEN {
-            PUT(y);
-        } ELSE {
-            PUT(x);
+        FOR(INT i := 0; i < 10; i++) {
+            PUT(i);
         }
     }
 END

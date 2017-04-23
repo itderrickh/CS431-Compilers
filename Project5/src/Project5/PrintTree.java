@@ -252,22 +252,60 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
     }
 
-    public void caseAAssignStmtexprtail(ADecrementStmtexprtail node) {
-
-        //TODO: handle this
-        //node.getId().apply(this);
-        //node.getExpr().apply(this);
+    public void caseAAssignStmtexprtail(AAssignStmtexprtail node) {
+        node.getId().apply(this);
+        node.getExpr().apply(this);
     }
 
     public void caseAForStmt(AForStmt node) {
+        String forStmt = "for" + this.forLabelCounter;
+        String bodyPart = "main" + this.mainBodyCounter;
+
         node.getId().apply(this);
         node.getExpr().apply(this);
-        //Do some assignment work here
+        String updateRegister = "";
+        if (flapjacks.size() >= 3) {
+            updateRegister = flapjacks.pop().toString();
+        }
+
+        Object value = flapjacks.pop();
+        String id = flapjacks.pop().toString();
+        String type = "";
+        if(value instanceof Integer) {
+            type = "INT";
+        } else if(value instanceof Double) {
+            type = "REAL";
+        }
+
+        //Check the value to make sure the old type still is legitimate
+        symbolTable.add(id, new Symbol(id, value, type));
+        
+        if (!updateRegister.equals("")) {
+            mipsString.append("\tsw ").append(updateRegister).append(", ").append(id).append("\n");
+        }
 
         node.getBoolean().apply(this);
+
+        //Pop something off the stack, an id or a register
+        value = flapjacks.pop().toString();
+        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(forStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append(" 0, ").append(bodyPart).append("\n");
+
+        mipsString.append(forStmt).append(":\n");
+        
+        //Do this every iteration
+        node.getStmtseq().apply(this);
+
+        //Do this every iteration
         node.getStmtexprtail().apply(this);
 
-        node.getStmtseq().apply(this);
+        //Repeating this might fix our issue of not having the correct register
+        node.getBoolean().apply(this);
+        String svalue = flapjacks.pop().toString();
+        mipsString.append("\tbeq ").append(svalue).append(", ").append(" 1, ").append(forStmt).append("\n");
+
+        mipsString.append("\tj ").append(bodyPart).append("\n");
+        mipsString.append(bodyPart).append(": \n");
     }
 
     public void caseAGetcommandStmt(AGetcommandStmt node) {
