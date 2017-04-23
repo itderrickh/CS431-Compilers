@@ -14,6 +14,7 @@ class PrintTree extends DepthFirstAdapter
     private StringBuilder data;
     private int nextRegister = 0;
     private int ifLabelCounter = 0;
+    private int elseLabelCounter = 0;
     private int forLabelCounter = 0;
     private int whileLabelCounter = 0;
     private int methodLabelCounter = 0;
@@ -166,8 +167,8 @@ class PrintTree extends DepthFirstAdapter
 
         //Pop something off the stack, an id or a register
         String value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(ifStmt).append("\n");
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 0, ").append(bodyPart).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(ifStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
 
         mipsString.append(ifStmt).append(":\n");
         node.getStmtseq().apply(this);
@@ -175,6 +176,32 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append(bodyPart).append(": \n");
 
         this.ifLabelCounter++;
+        this.mainBodyCounter++;
+    }
+
+    public void caseAIfelseStmt(AIfelseStmt node) {
+        String ifStmt = "if" + this.ifLabelCounter;
+        String elseStmt = "else" + this.ifLabelCounter;
+        String bodyPart = "main" + this.mainBodyCounter;
+        //get the condition
+        node.getIdbool().apply(this);
+
+        //Pop something off the stack, an id or a register
+        String value = flapjacks.pop().toString();
+        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(ifStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(elseStmt).append("\n");
+
+        mipsString.append(ifStmt).append(":\n");
+        node.getStmtseq().apply(this);
+        mipsString.append("\tj ").append(bodyPart).append("\n");
+
+        mipsString.append(elseStmt).append(":\n");
+        node.getStwo().apply(this);
+        mipsString.append("\tj ").append(bodyPart).append("\n");
+        mipsString.append(bodyPart).append(": \n");
+
+        this.ifLabelCounter++;
+        this.elseLabelCounter++;
         this.mainBodyCounter++;
     }
 
@@ -186,8 +213,8 @@ class PrintTree extends DepthFirstAdapter
 
         //Pop something off the stack, an id or a register
         String value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(whileStmt).append("\n");
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 0, ").append(bodyPart).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(whileStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
 
         mipsString.append(whileStmt).append(":\n");
         
@@ -228,21 +255,64 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAAssignStmtexprtail(AAssignStmtexprtail node) {
+<<<<<<< HEAD
 
         //TODO: handle this
+=======
+>>>>>>> origin/master
         node.getId().apply(this);
         node.getExpr().apply(this);
     }
 
     public void caseAForStmt(AForStmt node) {
+        String forStmt = "for" + this.forLabelCounter;
+        String bodyPart = "main" + this.mainBodyCounter;
+
         node.getId().apply(this);
         node.getExpr().apply(this);
-        //Do some assignment work here
+        String updateRegister = "";
+        if (flapjacks.size() >= 3) {
+            updateRegister = flapjacks.pop().toString();
+        }
+
+        Object value = flapjacks.pop();
+        String id = flapjacks.pop().toString();
+        String type = "";
+        if(value instanceof Integer) {
+            type = "INT";
+        } else if(value instanceof Double) {
+            type = "REAL";
+        }
+
+        //Check the value to make sure the old type still is legitimate
+        symbolTable.add(id, new Symbol(id, value, type));
+        
+        if (!updateRegister.equals("")) {
+            mipsString.append("\tsw ").append(updateRegister).append(", ").append(id).append("\n");
+        }
 
         node.getBoolean().apply(this);
+
+        //Pop something off the stack, an id or a register
+        value = flapjacks.pop().toString();
+        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(forStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
+
+        mipsString.append(forStmt).append(":\n");
+        
+        //Do this every iteration
+        node.getStmtseq().apply(this);
+
+        //Do this every iteration
         node.getStmtexprtail().apply(this);
 
-        node.getStmtseq().apply(this);
+        //Repeating this might fix our issue of not having the correct register
+        node.getBoolean().apply(this);
+        String svalue = flapjacks.pop().toString();
+        mipsString.append("\tbeq ").append(svalue).append(", ").append("1, ").append(forStmt).append("\n");
+
+        mipsString.append("\tj ").append(bodyPart).append("\n");
+        mipsString.append(bodyPart).append(": \n");
     }
 
     public void caseAGetcommandStmt(AGetcommandStmt node) {
