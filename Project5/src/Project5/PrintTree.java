@@ -14,6 +14,7 @@ class PrintTree extends DepthFirstAdapter
     private StringBuilder data;
     private int nextRegister = 0;
     private int ifLabelCounter = 0;
+    private int elseLabelCounter = 0;
     private int forLabelCounter = 0;
     private int whileLabelCounter = 0;
     private int methodLabelCounter = 0;
@@ -176,6 +177,32 @@ class PrintTree extends DepthFirstAdapter
         this.mainBodyCounter++;
     }
 
+    public void caseAIfelseStmt(AIfelseStmt node) {
+        String ifStmt = "if" + this.ifLabelCounter;
+        String elseStmt = "else" + this.ifLabelCounter;
+        String bodyPart = "main" + this.mainBodyCounter;
+        //get the condition
+        node.getIdbool().apply(this);
+
+        //Pop something off the stack, an id or a register
+        String value = flapjacks.pop().toString();
+        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(ifStmt).append("\n");
+        mipsString.append("\tbeq ").append(value).append(", ").append(" 0, ").append(elseStmt).append("\n");
+
+        mipsString.append(ifStmt).append(":\n");
+        node.getStmtseq().apply(this);
+        mipsString.append("\tj ").append(bodyPart).append("\n");
+
+        mipsString.append(elseStmt).append(":\n");
+        node.getStwo().apply(this);
+        mipsString.append("\tj ").append(bodyPart).append("\n");
+        mipsString.append(bodyPart).append(": \n");
+
+        this.ifLabelCounter++;
+        this.elseLabelCounter++;
+        this.mainBodyCounter++;
+    }
+
     public void caseAWhileStmt(AWhileStmt node) {
         String whileStmt = "while" + this.whileLabelCounter;
         String bodyPart = "main" + this.mainBodyCounter;
@@ -228,8 +255,8 @@ class PrintTree extends DepthFirstAdapter
     public void caseAAssignStmtexprtail(ADecrementStmtexprtail node) {
 
         //TODO: handle this
-        node.getId().apply(this);
-        node.getExpr().apply(this);
+        //node.getId().apply(this);
+        //node.getExpr().apply(this);
     }
 
     public void caseAForStmt(AForStmt node) {

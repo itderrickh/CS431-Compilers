@@ -2,10 +2,13 @@ BEGIN
     VOID main() {
         y : INT;
         y := 20;
-        z : INT;
-        z := 2;
         x : INT;
-        x := y / z;
-        PUT(x);
+        x := 10;
+        
+        IF(y < 10) THEN {
+            PUT(y);
+        } ELSE {
+            PUT(x);
+        }
     }
 END
