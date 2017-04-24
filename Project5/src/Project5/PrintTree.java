@@ -405,6 +405,8 @@ class PrintTree extends DepthFirstAdapter
             caseStart++;
         }
 
+        mipsString.append("\tj default" + this.defaultLabelCounter + "\n");
+
         caseStart = this.caseLabelCounter;
         mipsString.append("case" + caseStart + ":\n");
         //get the sequence for the first case
@@ -414,7 +416,6 @@ class PrintTree extends DepthFirstAdapter
         }
 
         caseStart++;
-        mipsString.append("\tj default" + this.defaultLabelCounter + "\n");
         for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
             mipsString.append("case" + caseStart + ":\n");
             AMorecases cases = (AMorecases) morecases.get(moreCaseIndex);

@@ -7,10 +7,11 @@ BEGIN
         h : INT;
         h := 40;
         z : INT;
-        z := 2;
+        z := 1;
         SWITCH(z) {
             CASE (1):
                 PUT(y);
+                BREAK;
             CASE (2):
                 PUT(z);
             CASE (3):
