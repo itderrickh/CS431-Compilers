@@ -398,7 +398,8 @@ class PrintTree extends DepthFirstAdapter
         //handle the rest of the cases
         LinkedList<PMorecases> morecases = node.getMorecases();
         for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
-            morecases.get(moreCaseIndex).getIntnum().apply(this);
+            AMorecases cases = (AMorecases) morecases.get(moreCaseIndex);
+            cases.getIntnum().apply(this);
             String currentCaseNum = flapjacks.pop().toString();
             mipsString.append("\tbeq " + caseExpr + ", " + currentCaseNum + " switch" + this.caseLabelCounter);
             this.caseLabelCounter++;
@@ -406,7 +407,8 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append("\tj default" + this.defaultLabelCounter);
         for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
             mipsString.append("\t" + caseStart + ":\n");
-            morecases.get(moreCaseIndex).getStmtseq().apply(this);
+            AMorecases cases = (AMorecases) morecases.get(moreCaseIndex);
+            cases.getStmtseq().apply(this);
             caseStart++;
         }
         mipsString.append("switch" + this.caseLabelCounter + ":\n");
