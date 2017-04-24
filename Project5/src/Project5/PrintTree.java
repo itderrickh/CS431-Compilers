@@ -255,11 +255,8 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAAssignStmtexprtail(AAssignStmtexprtail node) {
-<<<<<<< HEAD
 
         //TODO: handle this
-=======
->>>>>>> origin/master
         node.getId().apply(this);
         node.getExpr().apply(this);
     }

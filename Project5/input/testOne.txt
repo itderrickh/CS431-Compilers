@@ -1,16 +1,11 @@
 BEGIN
     VOID main() {
-<<<<<<< HEAD
         y : INT;
         y := 20;
         z : INT;
         z := 2;
         IF (y == z) THEN {
             PUT(z);
-=======
-        FOR(INT i := 0; i < 10; i++) {
-            PUT(i);
->>>>>>> origin/master
         }
     }
 END
