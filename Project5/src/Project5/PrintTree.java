@@ -393,36 +393,45 @@ class PrintTree extends DepthFirstAdapter
         node.getIntnum().apply(this);
         String caseNum = flapjacks.pop().toString();
         int caseStart = this.caseLabelCounter;
-        mipsString.append("\tbeq " + caseExpr + ", " + caseNum + " switch" + this.caseLabelCounter);
-        this.caseLabelCounter++;
+        mipsString.append("\tbeq " + caseExpr + ", " + caseNum + ", case" + caseStart + "\n");
+        caseStart++;
         //handle the rest of the cases
         LinkedList<PMorecases> morecases = node.getMorecases();
         for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
             AMorecases cases = (AMorecases) morecases.get(moreCaseIndex);
             cases.getIntnum().apply(this);
             String currentCaseNum = flapjacks.pop().toString();
-            mipsString.append("\tbeq " + caseExpr + ", " + currentCaseNum + " switch" + this.caseLabelCounter);
-            this.caseLabelCounter++;
-        }
-        mipsString.append("\tj default" + this.defaultLabelCounter);
-        for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
-            mipsString.append("\t" + caseStart + ":\n");
-            AMorecases cases = (AMorecases) morecases.get(moreCaseIndex);
-            cases.getStmtseq().apply(this);
+            mipsString.append("\tbeq " + caseExpr + ", " + currentCaseNum + ", case" + caseStart + "\n");
             caseStart++;
         }
-        mipsString.append("switch" + this.caseLabelCounter + ":\n");
+
+        caseStart = this.caseLabelCounter;
+        mipsString.append("case" + caseStart + ":\n");
         //get the sequence for the first case
         node.getStmtseq().apply(this);
         if (node.getBreakpart() != null) {
-            mipsString.append("\tj main" + this.mainBodyCounter);
+            mipsString.append("\tj main" + this.mainBodyCounter + "\n");
         }
-        mipsString.append("\tdefault" + this.defaultLabelCounter + ":\n");
+
+        caseStart++;
+        mipsString.append("\tj default" + this.defaultLabelCounter + "\n");
+        for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
+            mipsString.append("case" + caseStart + ":\n");
+            AMorecases cases = (AMorecases) morecases.get(moreCaseIndex);
+            cases.getStmtseq().apply(this);
+
+            if (cases.getBreakpart() != null) {
+                mipsString.append("\tj main" + this.mainBodyCounter + "\n");
+            }
+            caseStart++;
+        }
+        mipsString.append("default" + this.defaultLabelCounter + ":\n");
         node.getStwo().apply(this);
         String bodyPart = "main" + this.mainBodyCounter;
-        mipsString.append("\t" + bodyPart + ":\n");
+        mipsString.append(bodyPart + ":\n");
         this.mainBodyCounter++;
         this.defaultLabelCounter++;
+        this.caseLabelCounter += caseStart;
     }
 
     /*****************************************
