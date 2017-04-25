@@ -102,7 +102,7 @@ class PrintTree extends DepthFirstAdapter
                         .append(sym.getType())
                         .append("\n");
                 }
-                table.methodVariables.update(id, sym);
+                table.methodVariables.update(id, s);
             } else {
                 table.methodVariables.add(id, sym);
             }
@@ -112,14 +112,14 @@ class PrintTree extends DepthFirstAdapter
                 Symbol s = table.innerVariables.getValue(id);
                 if(!s.getType().equals(sym.getType())) {
                     this.errors.append("Invalid type exception: ")
-                        .append(sym.getName())
+                        .append(s.getName())
                         .append(" is type ")
                         .append(s.getType())
                         .append(" but was assigned type ")
                         .append(sym.getType())
                         .append("\n");
                 }
-                table.innerVariables.update(id, sym);
+                table.innerVariables.update(id, s);
             } else {
                 table.innerVariables.add(id, sym);
             }
@@ -337,13 +337,12 @@ class PrintTree extends DepthFirstAdapter
         String type = "";
         if(value instanceof Integer) {
             type = "INT";
-        } else if(value instanceof Double) {
+        } else if(value instanceof String) {
             type = "REAL";
         }
 
         Symbol s = findInSymbolTable(this.symbolTable, id);
         s.setValue(value);
-        s.setUsed();
         addToSymbolTable(id, s);
         
         if (!updateRegister.equals("")) {
@@ -527,7 +526,7 @@ class PrintTree extends DepthFirstAdapter
         String type = "";
         if(value instanceof Integer) {
             type = "INT";
-        } else if(value instanceof Double) {
+        } else if(value instanceof String) {
             type = "REAL";
         }
 
@@ -845,7 +844,7 @@ class PrintTree extends DepthFirstAdapter
             } else {
                 String nextRegister = this.incrementFloatRegister();
                 mipsString.append("\tmtc1 ").append(leftExpr).append(", ").append(nextRegister).append("\n");
-                mipsString.append("\tcvt.s.w ").append(nextRegister + ", " + nextRegister);
+            mipsString.append("\tcvt.s.w ").append(nextRegister + ", " + nextRegister);
                 if (addOp.equals("add")) {
                     addOp = "add.s";
                 }
@@ -952,15 +951,6 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseARealFactor(ARealFactor node) {
         node.getRealnum().apply(this);
-        //TODO probably has something to do with this
-        String floatDataLabel = "float" + this.floatDataLabelCounter;
-        String newRegister = this.incrementFloatRegister();
-        Double floatNum = (Double)flapjacks.pop();
-        Symbol newSymbol = new Symbol(floatDataLabel, floatNum, "REAL", floatDataLabel);
-        addToSymbolTable(floatDataLabel, newSymbol);
-        mipsString.append("\tl.s " + newRegister + ", " + floatDataLabel + "\n");
-        flapjacks.push(newRegister);
-        this.floatDataLabelCounter++;
     }
 
     public void caseAIdFactor(AIdFactor node) {

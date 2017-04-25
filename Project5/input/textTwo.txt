@@ -1,9 +1,18 @@
 BEGIN
     VOID main() {
-        y : REAL;
-        y := 2.0;
-        z : REAL;
-        z := 1.0;
-        PUT(z);
+        y : INT;
+        x : INT;
+        y := 4;
+        x := 0;
+
+        WHILE(y > x) {
+            y : INT;
+            y := 0;
+            PUT(y);
+
+            x++;
+        }
+
+        PUT(y);
     }
 END

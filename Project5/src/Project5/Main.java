@@ -31,6 +31,7 @@ public class Main{
       }
       catch(Exception e){
             System.out.println("Error(s): " + e.getMessage());
+            e.printStackTrace();
       }
    }
 }
