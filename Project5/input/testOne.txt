@@ -1,24 +1,7 @@
 BEGIN
     VOID main() {
-        y : INT;
-        y := 20;
-        x : INT;
-        x := 30;
-        h : INT;
-        h := 40;
-        z : INT;
-        z := 1;
-        SWITCH(z) {
-            CASE (1):
-                PUT(y);
-                BREAK;
-            CASE (2):
-                PUT(z);
-            CASE (3):
-                PUT(h);
-                BREAK;
-            DEFAULT:
-                PUT(x);
-        }
+        y : REAL;
+        y := 2.0;
+        PUT(y);
     }
 END

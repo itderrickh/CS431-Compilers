@@ -40,6 +40,18 @@ class PrintTree extends DepthFirstAdapter
         return next;
     }
 
+    public String incrementFloatRegister() {
+        String next = "$f" + this.nextRegister;
+        //Loop back once we hit 11
+        if(this.nextRegister >= 11) {
+            this.nextRegister = 0;
+        } else {
+            this.nextRegister++;
+        }
+
+        return next;
+    }
+
     public String getResult() {
         return mipsString.toString() + "\n" + data.toString();
     }
@@ -71,12 +83,12 @@ class PrintTree extends DepthFirstAdapter
                     } else if(value.getType().equals("STRING")) {
                         data.append(s).append(": ").append(".asciiz \"\"");
                     } else if(value.getType().equals("REAL")) {
-                        data.append(s).append(": ").append(".double 0");
+                        data.append(s).append(": ").append(".float 0");
                     }
                 } else if(value.getValue() instanceof String) {
                     data.append(s).append(": ").append(".asciiz ").append(value.getValue().toString());
                 } else if(value.getValue() instanceof Double) {
-                    data.append(s).append(": ").append(".double ").append(value.getValue().toString());
+                    data.append(s).append(": ").append(".float ").append(value.getValue().toString());
                 } else if(value.getValue() instanceof Integer) {
                     data.append(s).append(": ").append(".word ").append(value.getValue().toString());
                 }
@@ -327,7 +339,7 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAPutcommandStmt(APutcommandStmt node) {
-        String currReg = this.incrementRegister();
+        String currReg;
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
@@ -337,13 +349,18 @@ class PrintTree extends DepthFirstAdapter
             mipsString.append("\tli $v0, 4\n").append("\tla $a0, ").append(id).append("\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("INT")) {
+            currReg = this.incrementRegister();
             mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
             mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("REAL")) {
-            mipsString.append("\tmov.s $f12, ").append(id).append("\n");
+            currReg = this.incrementFloatRegister();
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tmov.s $f12, ").append(currReg).append("\n");
+            mipsString.append("\tli $v0, 2\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("BOOLEAN")) {
+            currReg = this.incrementRegister();
             mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
             mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
             mipsString.append("\tsyscall\n");
@@ -609,10 +626,18 @@ class PrintTree extends DepthFirstAdapter
     public void caseAIdFactor(AIdFactor node) {
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-        String newRegister = "$t" + this.nextRegister;
-        mipsString.append("\tlw " + newRegister + " " + id + "\n");
+        String newRegister;
+        Symbol symbol = symbolTable.getValue(id);
+        if (symbol.getType().equals("REAL")) {
+            newRegister = this.incrementFloatRegister();
+            mipsString.append("\tl.s" + newRegister + " " + id + "\n");
+        }
+        //TODO actually else?
+        else {
+            newRegister = this.incrementRegister();
+            mipsString.append("\tlw " + newRegister + " " + id + "\n");
+        }
         flapjacks.push(newRegister);
-        nextRegister += 1;
     }
 
 
