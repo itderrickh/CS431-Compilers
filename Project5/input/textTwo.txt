@@ -1,9 +1,9 @@
 BEGIN
     VOID main() {
-        x : INT;
-        x := 4;
-        PUT(x);
-        x--;
-        PUT(x);
+        y : REAL;
+        y := 2.0;
+        z : REAL;
+        z := 1.0;
+        PUT(z);
     }
 END

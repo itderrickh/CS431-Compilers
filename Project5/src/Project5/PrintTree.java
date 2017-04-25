@@ -9,9 +9,9 @@ import java.util.*;
 class PrintTree extends DepthFirstAdapter
 {
     private Stack<Object> flapjacks = new Stack<Object>();
-    private ITable symbolTable;
     private StringBuilder mipsString;
     private StringBuilder data;
+    private ITable symbolTable;
 
     private StringBuilder errors;
     private int nextRegister = 0;
@@ -24,9 +24,10 @@ class PrintTree extends DepthFirstAdapter
     private int defaultLabelCounter = 0;
     private int mainBodyCounter = 0;
     private int floatDataLabelCounter = 0;
+    private int variableCounter = 0;
 
  	public PrintTree() {
-        this.symbolTable = new SymbolTable();
+        this.symbolTable = (ITable)new GlobalTable();
         mipsString = new StringBuilder();
         data = new StringBuilder();
         errors = new StringBuilder();
@@ -55,34 +56,77 @@ class PrintTree extends DepthFirstAdapter
         if(symbolTable instanceof GlobalTable) {
             GlobalTable table = (GlobalTable) symbolTable;
             if(table.globalVariables.containsKey(id)) {
-                return table.globalVariables.getValue(id);
+                Symbol s = table.globalVariables.getValue(id);
+                if(!s.getType().equals(sym.getType())) {
+                    this.errors.append("Invalid type exception: ")
+                        .append(sym.getId())
+                        .append(" is type ")
+                        .append(s.getType())
+                        .append(" but was assigned type ")
+                        .append(sym.getType())
+                        .append("\n");
+                }
+                table.globalVariables.update(id, sym);
+            } else {
+                table.globalVariables.add(id, sym);
             }
         } else if(symbolTable instanceof ClassTable) {
             ClassTable table = (ClassTable) symbolTable;
             if(table.classVariables.containsKey(id)) {
-                return table.classVariables.getValue(id);
+                Symbol s = table.classVariables.getValue(id);
+                if(!s.getType().equals(sym.getType())) {
+                    this.errors.append("Invalid type exception: ")
+                        .append(sym.getId())
+                        .append(" is type ")
+                        .append(s.getType())
+                        .append(" but was assigned type ")
+                        .append(sym.getType())
+                        .append("\n");
+                }
+                table.classVariables.update(id, sym);
             } else {
-                return findInSymbolTable(table.getParent(), id);
+                table.classVariables.add(id, sym);
             }
         } else if(symbolTable instanceof MethodTable) {
             MethodTable table = (MethodTable) symbolTable;
             if(table.methodVariables.containsKey(id)) {
-                return table.methodVariables.getValue(id);
+                Symbol s = table.methodVariables.getValue(id);
+                if(!s.getType().equals(sym.getType())) {
+                    this.errors.append("Invalid type exception: ")
+                        .append(sym.getId())
+                        .append(" is type ")
+                        .append(s.getType())
+                        .append(" but was assigned type ")
+                        .append(sym.getType())
+                        .append("\n");
+                }
+                table.methodVariables.update(id, sym);
             } else {
-                return findInSymbolTable(table.getParent(), id);
+                table.methodVariables.add(id, sym);
             }
         } else if(symbolTable instanceof VariableTable) {
             VariableTable table = (VariableTable) symbolTable;
             if(table.innerVariables.containsKey(id)) {
-                return table.innerVariables.getValue(id);
+                Symbol s = table.innerVariables.getValue(id);
+                if(!s.getType().equals(sym.getType())) {
+                    this.errors.append("Invalid type exception: ")
+                        .append(sym.getId())
+                        .append(" is type ")
+                        .append(s.getType())
+                        .append(" but was assigned type ")
+                        .append(sym.getType())
+                        .append("\n");
+                }
+                table.innerVariables.update(id, sym);
             } else {
-                return findInSymbolTable(table.getParent(), id);
+                table.innerVariables.add(id, sym);
             }
         }
     }
 
-    public ITable changeScope(Boolean deeper, String id) {
+    public void changeScope(Boolean deeper, String id) {
         if(deeper) {
+            addScope(id);
             if(symbolTable instanceof GlobalTable) {
                 GlobalTable table = (GlobalTable) symbolTable;
                 this.symbolTable = (ITable)table.globalClasses.get(id);
@@ -137,20 +181,20 @@ class PrintTree extends DepthFirstAdapter
             if(s.getValue() == null) {
                 //Set the variable to the default value
                 if(s.getType().equals("INT")) {
-                    data.append(s).append(": ").append(".word 0");
+                    data.append(s.getId()).append(": ").append(".word 0");
                 } else if(s.getType().equals("BOOLEAN")) {
-                    data.append(s).append(": ").append(".word 0");
+                    data.append(s.getId()).append(": ").append(".word 0");
                 } else if(s.getType().equals("STRING")) {
-                    data.append(s).append(": ").append(".asciiz \"\"");
+                    data.append(s.getId()).append(": ").append(".asciiz \"\"");
                 } else if(s.getType().equals("REAL")) {
-                    data.append(s).append(": ").append(".float 0");
+                    data.append(s.getId()).append(": ").append(".float 0");
                 }
             } else if(s.getValue() instanceof String) {
-                data.append(s).append(": ").append(".asciiz ").append(s.getValue().toString());
+                data.append(s.getId()).append(": ").append(".asciiz ").append(s.getValue().toString());
             } else if(s.getValue() instanceof Double) {
-                data.append(s).append(": ").append(".float ").append(s.getValue().toString());
+                data.append(s.getId()).append(": ").append(".float ").append(s.getValue().toString());
             } else if(s.getValue() instanceof Integer) {
-                data.append(s).append(": ").append(".word ").append(s.getValue().toString());
+                data.append(s.getId()).append(": ").append(".word ").append(s.getValue().toString());
             }
             data.append("\n");
         } else {
@@ -171,24 +215,24 @@ class PrintTree extends DepthFirstAdapter
             doSymbol(s);
         }
 
-        for(String gc: gt.globalClasses.getKeys()) {
+        for(String gc: gt.globalClasses.keySet()) {
             ClassTable ct = gt.globalClasses.get(gc);
             for(String c : ct.classVariables.getKeys()) {
-                Symbol sy = ct.classVariables.getVariable(g);
+                Symbol sy = ct.classVariables.getValue(c);
                 doSymbol(sy);
             }
 
-            for(String cg: ct.classFunctions.getKeys()) {
+            for(String cg: ct.classFunctions.keySet()) {
                 MethodTable mt = ct.classFunctions.get(cg);
                 for(String g : mt.methodVariables.getKeys()) {
                     Symbol sym = mt.methodVariables.getValue(g);
                     doSymbol(sym);
                 }
 
-                for(String mg: mt.innerScopes.getKeys()) {
+                for(String mg: mt.innerScopes.keySet()) {
                     VariableTable vt = mt.innerScopes.get(cg);
                     for(String v : vt.innerVariables.getKeys()) {
-                        Symbol symb = vt.innerVariables.getValue(g);
+                        Symbol symb = vt.innerVariables.getValue(v);
                         doSymbol(symb);
                     }
                 }
@@ -254,7 +298,11 @@ class PrintTree extends DepthFirstAdapter
         String id = flapjacks.pop().toString().toLowerCase();
         mipsString.append(id).append(": \n");
 
+        changeScope(true, id);
+
         node.getStmtseq().apply(this);
+
+        changeScope(false, "");
     }
 
     public void caseAMorestatementsStmtseq(AMorestatementsStmtseq node) {
@@ -281,20 +329,17 @@ class PrintTree extends DepthFirstAdapter
         } else if(value instanceof Double) {
             type = "REAL";
         }
-        //Check the value to make sure the old type still is legitimate
 
-        //TODO something's wrong here with floats, the register is on the stack somehow instead of the id
-        //probably something with caseARealFactor
-        Symbol s = symbolTable.getValue(id);
+        Symbol s = findInSymbolTable(this.symbolTable, id);
         s.setValue(value);
-        symbolTable.update(id, s);
+        addToSymbolTable(id, s);
         
         if (!updateRegister.equals("")) {
             if (updateRegister.indexOf("$f") != -1) {
-                mipsString.append("\ts.s ").append(updateRegister).append(", ").append(id).append("\n");
+                mipsString.append("\ts.s ").append(updateRegister).append(", ").append(s.getId()).append("\n");
             }
             else {
-                mipsString.append("\tsw ").append(updateRegister).append(", ").append(id).append("\n");
+                mipsString.append("\tsw ").append(updateRegister).append(", ").append(s.getId()).append("\n");
             }
         }
     }
@@ -305,12 +350,9 @@ class PrintTree extends DepthFirstAdapter
         String value = flapjacks.pop().toString();
         String id = flapjacks.pop().toString();
 
-        Symbol s = symbolTable.getValue(id);
+        Symbol s = findInSymbolTable(this.symbolTable, id);
         s.setValue(value);
-        symbolTable.update(id, s);
-
-        //Check the value to make sure the old type still is legitimate
-        symbolTable.update(id, s);
+        addToSymbolTable(id, s);
     }
 
     public void caseAVariabledefStmt(AVariabledefStmt node) {
@@ -319,7 +361,8 @@ class PrintTree extends DepthFirstAdapter
         String type = flapjacks.pop().toString();
         String id = flapjacks.pop().toString();
 
-        symbolTable.add(id, new Symbol(id, null, type));
+        addToSymbolTable(id, new Symbol("variable" + this.variableCounter, null, type));
+        this.variableCounter++;
     }
 
     public void caseAIfStmt(AIfStmt node) {
@@ -334,7 +377,9 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
 
         mipsString.append(ifStmt).append(":\n");
+        changeScope(true, ifStmt);
         node.getStmtseq().apply(this);
+        changeScope(false, "");
         mipsString.append("\tj ").append(bodyPart).append("\n");
         mipsString.append(bodyPart).append(": \n");
 
@@ -355,11 +400,15 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(elseStmt).append("\n");
 
         mipsString.append(ifStmt).append(":\n");
+        changeScope(true, ifStmt);
         node.getStmtseq().apply(this);
+        changeScope(false, "");
         mipsString.append("\tj ").append(bodyPart).append("\n");
 
         mipsString.append(elseStmt).append(":\n");
+        changeScope(true, elseStmt);
         node.getStwo().apply(this);
+        changeScope(false, "");
         mipsString.append("\tj ").append(bodyPart).append("\n");
         mipsString.append(bodyPart).append(": \n");
 
@@ -381,6 +430,7 @@ class PrintTree extends DepthFirstAdapter
 
         mipsString.append(whileStmt).append(":\n");
         
+        changeScope(true, whileStmt);
         node.getStmtseq().apply(this);
 
         //Repeating this might fix our issue of not having the correct register
@@ -389,6 +439,8 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(whileStmt).append("\n");
 
         mipsString.append("\tj ").append(bodyPart).append("\n");
+
+        changeScope(false, "");
         mipsString.append(bodyPart).append(": \n");
 
         this.whileLabelCounter++;
@@ -400,21 +452,20 @@ class PrintTree extends DepthFirstAdapter
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-        Symbol symbol = symbolTable.getValue(id);
-        System.out.println(symbol.getType());
+        Symbol symbol = findInSymbolTable(this.symbolTable, id);
         if (symbol.getType().equals("REAL")) {
             currReg = this.incrementFloatRegister();
-            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
             String oneRegister = this.incrementFloatRegister();
             mipsString.append("\tl.s ").append(oneRegister).append(", ").append("FLOATONE\n");
             mipsString.append("\tadd.s ").append(currReg).append(", ").append(currReg).append(", ").append(oneRegister).append("\n");
-            mipsString.append("\ts.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\ts.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
         }
         else {
             currReg = this.incrementRegister();
-            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tlw ").append(currReg).append(", ").append(symbol.getId()).append("\n");
             mipsString.append("\tadd ").append(currReg).append(", ").append(currReg).append(", 1\n");
-            mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tsw ").append(currReg).append(", ").append(symbol.getId()).append("\n");
         }
     }
 
@@ -423,20 +474,20 @@ class PrintTree extends DepthFirstAdapter
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-        Symbol symbol = symbolTable.getValue(id);
+        Symbol symbol = findInSymbolTable(this.symbolTable, id);
         if (symbol.getType().equals("REAL")) {
             currReg = this.incrementFloatRegister();
-            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
             String oneRegister = this.incrementFloatRegister();
             mipsString.append("\tl.s ").append(oneRegister).append(", ").append("FLOATONE\n");
             mipsString.append("\tsub.s ").append(currReg).append(", ").append(currReg).append(", ").append(oneRegister).append("\n");
-            mipsString.append("\ts.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\ts.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
         }
         else {
             currReg = this.incrementRegister();
-            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tlw ").append(currReg).append(", ").append(symbol.getId()).append("\n");
             mipsString.append("\tsub ").append(currReg).append(", ").append(currReg).append(", 1\n");
-            mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tsw ").append(currReg).append(", ").append(symbol.getId()).append("\n");
         }
     }
 
@@ -460,6 +511,7 @@ class PrintTree extends DepthFirstAdapter
 
         Object value = flapjacks.pop();
         String id = flapjacks.pop().toString();
+        Symbol sym = findInSymbolTable(this.symbolTable, id);
         String type = "";
         if(value instanceof Integer) {
             type = "INT";
@@ -468,7 +520,7 @@ class PrintTree extends DepthFirstAdapter
         }
 
         //Check the value to make sure the old type still is legitimate
-        symbolTable.add(id, new Symbol(id, value, type));
+        addToSymbolTable(id, new Symbol(sym.getId(), value, type));
         
         if (!updateRegister.equals("")) {
             mipsString.append("\tsw ").append(updateRegister).append(", ").append(id).append("\n");
@@ -483,6 +535,7 @@ class PrintTree extends DepthFirstAdapter
 
         mipsString.append(forStmt).append(":\n");
         
+        changeScope(true, forStmt);
         //Do this every iteration
         node.getStmtseq().apply(this);
 
@@ -495,6 +548,8 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append("\tbeq ").append(svalue).append(", ").append("1, ").append(forStmt).append("\n");
 
         mipsString.append("\tj ").append(bodyPart).append("\n");
+
+        changeScope(false, "");
         mipsString.append(bodyPart).append(": \n");
     }
 
@@ -503,13 +558,15 @@ class PrintTree extends DepthFirstAdapter
         String currReg = this.incrementRegister();
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-        Symbol sym = this.symbolTable.getValue(id);
+        Symbol sym = findInSymbolTable(this.symbolTable, id);
 
         if(sym.getType().equals("INT")) {
             mipsString.append("\taddi $v0, $zero, 5\n\tsyscall\n");
             mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
-            mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
-        }    
+            mipsString.append("\tsw ").append(currReg).append(", ").append(sym.getId()).append("\n");
+        }
+
+        //NEED TO HANDLE STRING AND BOOL AND REAL HERE
     }
 
     public void caseAPutcommandStmt(APutcommandStmt node) {
@@ -517,25 +574,26 @@ class PrintTree extends DepthFirstAdapter
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
+        Symbol sym = findInSymbolTable(this.symbolTable, id);
 
-        String type = symbolTable.getValue(id).getType();
+        String type = sym.getType();
         if(type.equals("STRING")) {
-            mipsString.append("\tli $v0, 4\n").append("\tla $a0, ").append(id).append("\n");
+            mipsString.append("\tli $v0, 4\n").append("\tla $a0, ").append(sym.getId()).append("\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("INT")) {
             currReg = this.incrementRegister();
-            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tlw ").append(currReg).append(", ").append(sym.getId()).append("\n");
             mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("REAL")) {
             currReg = this.incrementFloatRegister();
-            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(sym.getId()).append("\n");
             mipsString.append("\tmov.s $f12, ").append(currReg).append("\n");
             mipsString.append("\tli $v0, 2\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("BOOLEAN")) {
             currReg = this.incrementRegister();
-            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tlw ").append(currReg).append(", ").append(sym.getId()).append("\n");
             mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
             mipsString.append("\tsyscall\n");
         }
@@ -548,20 +606,20 @@ class PrintTree extends DepthFirstAdapter
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-        Symbol symbol = symbolTable.getValue(id);
+        Symbol symbol = findInSymbolTable(this.symbolTable, id);
         if (symbol.getType().equals("REAL")) {
             currReg = this.incrementFloatRegister();
-            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
             String oneRegister = this.incrementFloatRegister();
             mipsString.append("\tl.s ").append(oneRegister).append(", ").append("FLOATONE\n");
             mipsString.append("\tadd.s ").append(currReg).append(", ").append(currReg).append(", ").append(oneRegister).append("\n");
-            mipsString.append("\ts.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\ts.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
         }
         else {
             currReg = this.incrementRegister();
-            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tlw ").append(currReg).append(", ").append(symbol.getId()).append("\n");
             mipsString.append("\tadd ").append(currReg).append(", ").append(currReg).append(", 1\n");
-            mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tsw ").append(currReg).append(", ").append(symbol.getId()).append("\n");
         }
     }
 
@@ -570,20 +628,20 @@ class PrintTree extends DepthFirstAdapter
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-        Symbol symbol = symbolTable.getValue(id);
+        Symbol symbol = findInSymbolTable(this.symbolTable, id);
         if (symbol.getType().equals("REAL")) {
             currReg = this.incrementFloatRegister();
-            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
             String oneRegister = this.incrementFloatRegister();
             mipsString.append("\tl.s ").append(oneRegister).append(", ").append("FLOATONE\n");
             mipsString.append("\tsub.s ").append(currReg).append(", ").append(currReg).append(", ").append(oneRegister).append("\n");
-            mipsString.append("\ts.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\ts.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
         }
         else {
             currReg = this.incrementRegister();
-            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tlw ").append(currReg).append(", ").append(symbol.getId()).append("\n");
             mipsString.append("\tsub ").append(currReg).append(", ").append(currReg).append(", 1\n");
-            mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tsw ").append(currReg).append(", ").append(symbol.getId()).append("\n");
         }
     }
 
@@ -592,9 +650,11 @@ class PrintTree extends DepthFirstAdapter
         node.getBoolean().apply(this);
         Object value = flapjacks.pop();
         String id = flapjacks.pop().toString();
-
+        Symbol sym = findInSymbolTable(this.symbolTable, id);
+        sym.setValue(value);
         //Check the value to make sure the old type still is legitimate
-        symbolTable.update(id, new Symbol(id, value.toString(), "BOOLEAN"));
+        addToSymbolTable(id, sym);
+        variableCounter++;
     }
 
     public void caseASwitchStmt(ASwitchStmt node) {
@@ -632,7 +692,9 @@ class PrintTree extends DepthFirstAdapter
         for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
             mipsString.append("case" + caseStart + ":\n");
             AMorecases cases = (AMorecases) morecases.get(moreCaseIndex);
+            changeScope(true, "case" + caseStart);
             cases.getStmtseq().apply(this);
+            changeScope(false, "");
 
             if (cases.getBreakpart() != null) {
                 mipsString.append("\tj main" + this.mainBodyCounter + "\n");
@@ -640,7 +702,9 @@ class PrintTree extends DepthFirstAdapter
             caseStart++;
         }
         mipsString.append("default" + this.defaultLabelCounter + ":\n");
+        changeScope(true, "default" + this.defaultLabelCounter);
         node.getStwo().apply(this);
+        changeScope(false, "");
         String bodyPart = "main" + this.mainBodyCounter;
         mipsString.append(bodyPart + ":\n");
         this.mainBodyCounter++;
@@ -872,7 +936,7 @@ class PrintTree extends DepthFirstAdapter
         String newRegister = this.incrementFloatRegister();
         Double floatNum = (Double)flapjacks.pop();
         Symbol newSymbol = new Symbol(floatDataLabel, floatNum, "REAL");
-        symbolTable.add(floatDataLabel, newSymbol);
+        addToSymbolTable(floatDataLabel, newSymbol);
         mipsString.append("\tl.s " + newRegister + ", " + floatDataLabel + "\n");
         flapjacks.push(newRegister);
         this.floatDataLabelCounter++;
@@ -882,15 +946,15 @@ class PrintTree extends DepthFirstAdapter
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
         String newRegister;
-        Symbol symbol = symbolTable.getValue(id);
+        Symbol symbol = findInSymbolTable(this.symbolTable, id);
         if (symbol.getType().equals("REAL")) {
             newRegister = this.incrementFloatRegister();
-            mipsString.append("\tl.s " + newRegister + ", " + id + "\n");
+            mipsString.append("\tl.s " + newRegister + ", " + symbol.getId() + "\n");
         }
         //TODO actually else?
         else {
             newRegister = this.incrementRegister();
-            mipsString.append("\tlw " + newRegister + ", " + id + "\n");
+            mipsString.append("\tlw " + newRegister + ", " + symbol.getId() + "\n");
         }
         flapjacks.push(newRegister);
     }

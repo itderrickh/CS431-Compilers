@@ -15,6 +15,10 @@ public class Symbol {
        this.type = type;
     }
 
+    public String getId() {
+        return this.identifier;
+    }
+
     public Object getValue() {
         return this.value;
     }
