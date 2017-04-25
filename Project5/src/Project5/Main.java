@@ -17,6 +17,11 @@ public class Main{
             Start ast = parser.parse();
             PrintTree tree = new PrintTree();
             ast.apply(tree);  //this is what gets the depth first search going
+
+            if(tree.getErrors().length() > 0) {
+                  throw new Exception(tree.getErrors());
+            }
+
             FileWriter.writeToFile(arguments[0], tree.getResult());
       }
       catch(Exception e){

@@ -12,6 +12,8 @@ class PrintTree extends DepthFirstAdapter
     private SymbolTable symbolTable;
     private StringBuilder mipsString;
     private StringBuilder data;
+
+    private StringBuilder errors;
     private int nextRegister = 0;
     private int ifLabelCounter = 0;
     private int elseLabelCounter = 0;
@@ -24,7 +26,12 @@ class PrintTree extends DepthFirstAdapter
         this.symbolTable = new SymbolTable();
         mipsString = new StringBuilder();
         data = new StringBuilder();
+        errors = new StringBuilder();
 	}
+
+    public String getErrors() {
+        return errors.toString();
+    }
 
     public String incrementRegister() {
         String next = "$t" + this.nextRegister;
@@ -81,7 +88,7 @@ class PrintTree extends DepthFirstAdapter
                 data.append("\n");
             } else {
                 //Turn this into a warning later
-                System.out.println("Undeclared variable: " + s);
+                errors.append("Undeclared variable: " + s + '\n');
             }
         }
     }
