@@ -20,7 +20,10 @@ class PrintTree extends DepthFirstAdapter
     private int forLabelCounter = 0;
     private int whileLabelCounter = 0;
     private int methodLabelCounter = 0;
+    private int caseLabelCounter = 0;
+    private int defaultLabelCounter = 0;
     private int mainBodyCounter = 0;
+    private int floatDataLabelCounter = 0;
 
  	public PrintTree() {
         this.symbolTable = new SymbolTable();
@@ -45,6 +48,18 @@ class PrintTree extends DepthFirstAdapter
         return next;
     }
 
+    public String incrementFloatRegister() {
+        String next = "$f" + this.nextRegister;
+        //Loop back once we hit 11
+        if(this.nextRegister >= 11) {
+            this.nextRegister = 0;
+        } else {
+            this.nextRegister++;
+        }
+
+        return next;
+    }
+
     public String getResult() {
         return mipsString.toString() + "\n" + data.toString();
     }
@@ -61,6 +76,7 @@ class PrintTree extends DepthFirstAdapter
         //Write the data section
         data.append(".data\n");
         data.append("\tNEWLINE: .asciiz \"\\n\"\n");
+        data.append("\tFLOATONE: .float 1.0\n");
         for(String s : this.symbolTable.getKeys()) {
             Symbol value = this.symbolTable.getValue(s);
             
@@ -76,12 +92,12 @@ class PrintTree extends DepthFirstAdapter
                     } else if(value.getType().equals("STRING")) {
                         data.append(s).append(": ").append(".asciiz \"\"");
                     } else if(value.getType().equals("REAL")) {
-                        data.append(s).append(": ").append(".double 0");
+                        data.append(s).append(": ").append(".float 0");
                     }
                 } else if(value.getValue() instanceof String) {
                     data.append(s).append(": ").append(".asciiz ").append(value.getValue().toString());
                 } else if(value.getValue() instanceof Double) {
-                    data.append(s).append(": ").append(".double ").append(value.getValue().toString());
+                    data.append(s).append(": ").append(".float ").append(value.getValue().toString());
                 } else if(value.getValue() instanceof Integer) {
                     data.append(s).append(": ").append(".word ").append(value.getValue().toString());
                 }
@@ -130,14 +146,21 @@ class PrintTree extends DepthFirstAdapter
         } else if(value instanceof Double) {
             type = "REAL";
         }
-
         //Check the value to make sure the old type still is legitimate
+
+        //TODO something's wrong here with floats, the register is on the stack somehow instead of the id
+        //probably something with caseARealFactor
         Symbol s = symbolTable.getValue(id);
         s.setValue(value);
         symbolTable.update(id, s);
         
         if (!updateRegister.equals("")) {
-            mipsString.append("\tsw ").append(updateRegister).append(", ").append(id).append("\n");
+            if (updateRegister.indexOf("$f") != -1) {
+                mipsString.append("\ts.s ").append(updateRegister).append(", ").append(id).append("\n");
+            }
+            else {
+                mipsString.append("\tsw ").append(updateRegister).append(", ").append(id).append("\n");
+            }
         }
     }
 
@@ -238,28 +261,53 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAIncrementStmtexprtail(AIncrementStmtexprtail node) {
-        String currReg = this.incrementRegister();
+        String currReg;
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-
-        mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
-        mipsString.append("\tadd ").append(currReg).append(", ").append(currReg).append(", 1\n");
-        mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+        Symbol symbol = symbolTable.getValue(id);
+        System.out.println(symbol.getType());
+        if (symbol.getType().equals("REAL")) {
+            currReg = this.incrementFloatRegister();
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            String oneRegister = this.incrementFloatRegister();
+            mipsString.append("\tl.s ").append(oneRegister).append(", ").append("FLOATONE\n");
+            mipsString.append("\tadd.s ").append(currReg).append(", ").append(currReg).append(", ").append(oneRegister).append("\n");
+            mipsString.append("\ts.s ").append(currReg).append(", ").append(id).append("\n");
+        }
+        else {
+            currReg = this.incrementRegister();
+            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tadd ").append(currReg).append(", ").append(currReg).append(", 1\n");
+            mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+        }
     }
 
     public void caseADecrementStmtexprtail(ADecrementStmtexprtail node) {
-        String currReg = this.incrementRegister();
+        String currReg;
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-
-        mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
-        mipsString.append("\tsub ").append(currReg).append(", ").append(currReg).append(", 1\n");
-        mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+        Symbol symbol = symbolTable.getValue(id);
+        if (symbol.getType().equals("REAL")) {
+            currReg = this.incrementFloatRegister();
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            String oneRegister = this.incrementFloatRegister();
+            mipsString.append("\tl.s ").append(oneRegister).append(", ").append("FLOATONE\n");
+            mipsString.append("\tsub.s ").append(currReg).append(", ").append(currReg).append(", ").append(oneRegister).append("\n");
+            mipsString.append("\ts.s ").append(currReg).append(", ").append(id).append("\n");
+        }
+        else {
+            currReg = this.incrementRegister();
+            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tsub ").append(currReg).append(", ").append(currReg).append(", 1\n");
+            mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+        }
     }
 
     public void caseAAssignStmtexprtail(AAssignStmtexprtail node) {
+
+        //TODO: handle this
         node.getId().apply(this);
         node.getExpr().apply(this);
     }
@@ -330,7 +378,7 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAPutcommandStmt(APutcommandStmt node) {
-        String currReg = this.incrementRegister();
+        String currReg;
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
@@ -340,13 +388,18 @@ class PrintTree extends DepthFirstAdapter
             mipsString.append("\tli $v0, 4\n").append("\tla $a0, ").append(id).append("\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("INT")) {
+            currReg = this.incrementRegister();
             mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
             mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("REAL")) {
-            mipsString.append("\tmov.s $f12, ").append(id).append("\n");
+            currReg = this.incrementFloatRegister();
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tmov.s $f12, ").append(currReg).append("\n");
+            mipsString.append("\tli $v0, 2\n");
             mipsString.append("\tsyscall\n");
         } else if(type.equals("BOOLEAN")) {
+            currReg = this.incrementRegister();
             mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
             mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(currReg).append(", $zero\n");
             mipsString.append("\tsyscall\n");
@@ -356,25 +409,47 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAIncrementStmt(AIncrementStmt node) {
-        String currReg = this.incrementRegister();
+        String currReg;
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-
-        mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
-        mipsString.append("\tadd ").append(currReg).append(", ").append(currReg).append(", 1\n");
-        mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+        Symbol symbol = symbolTable.getValue(id);
+        if (symbol.getType().equals("REAL")) {
+            currReg = this.incrementFloatRegister();
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            String oneRegister = this.incrementFloatRegister();
+            mipsString.append("\tl.s ").append(oneRegister).append(", ").append("FLOATONE\n");
+            mipsString.append("\tadd.s ").append(currReg).append(", ").append(currReg).append(", ").append(oneRegister).append("\n");
+            mipsString.append("\ts.s ").append(currReg).append(", ").append(id).append("\n");
+        }
+        else {
+            currReg = this.incrementRegister();
+            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tadd ").append(currReg).append(", ").append(currReg).append(", 1\n");
+            mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+        }
     }
 
     public void caseADecrementStmt(ADecrementStmt node) {
-        String currReg = this.incrementRegister();
+        String currReg;
 
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-
-        mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
-        mipsString.append("\tsub ").append(currReg).append(", ").append(currReg).append(", 1\n");
-        mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+        Symbol symbol = symbolTable.getValue(id);
+        if (symbol.getType().equals("REAL")) {
+            currReg = this.incrementFloatRegister();
+            mipsString.append("\tl.s ").append(currReg).append(", ").append(id).append("\n");
+            String oneRegister = this.incrementFloatRegister();
+            mipsString.append("\tl.s ").append(oneRegister).append(", ").append("FLOATONE\n");
+            mipsString.append("\tsub.s ").append(currReg).append(", ").append(currReg).append(", ").append(oneRegister).append("\n");
+            mipsString.append("\ts.s ").append(currReg).append(", ").append(id).append("\n");
+        }
+        else {
+            currReg = this.incrementRegister();
+            mipsString.append("\tlw ").append(currReg).append(", ").append(id).append("\n");
+            mipsString.append("\tsub ").append(currReg).append(", ").append(currReg).append(", 1\n");
+            mipsString.append("\tsw ").append(currReg).append(", ").append(id).append("\n");
+        }
     }
 
     public void caseAAssignbooleanStmt(AAssignbooleanStmt node) {
@@ -388,7 +463,54 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseASwitchStmt(ASwitchStmt node) {
+        //get the actual expression
+        node.getExpr().apply(this);
 
+        String caseExpr = flapjacks.pop().toString();
+        //get the first case number, and load it for comparison
+        node.getIntnum().apply(this);
+        String caseNum = flapjacks.pop().toString();
+        int caseStart = this.caseLabelCounter;
+        mipsString.append("\tbeq " + caseExpr + ", " + caseNum + ", case" + caseStart + "\n");
+        caseStart++;
+        //handle the rest of the cases
+        LinkedList<PMorecases> morecases = node.getMorecases();
+        for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
+            AMorecases cases = (AMorecases) morecases.get(moreCaseIndex);
+            cases.getIntnum().apply(this);
+            String currentCaseNum = flapjacks.pop().toString();
+            mipsString.append("\tbeq " + caseExpr + ", " + currentCaseNum + ", case" + caseStart + "\n");
+            caseStart++;
+        }
+
+        mipsString.append("\tj default" + this.defaultLabelCounter + "\n");
+
+        caseStart = this.caseLabelCounter;
+        mipsString.append("case" + caseStart + ":\n");
+        //get the sequence for the first case
+        node.getStmtseq().apply(this);
+        if (node.getBreakpart() != null) {
+            mipsString.append("\tj main" + this.mainBodyCounter + "\n");
+        }
+
+        caseStart++;
+        for (int moreCaseIndex = 0; moreCaseIndex < morecases.size(); moreCaseIndex++) {
+            mipsString.append("case" + caseStart + ":\n");
+            AMorecases cases = (AMorecases) morecases.get(moreCaseIndex);
+            cases.getStmtseq().apply(this);
+
+            if (cases.getBreakpart() != null) {
+                mipsString.append("\tj main" + this.mainBodyCounter + "\n");
+            }
+            caseStart++;
+        }
+        mipsString.append("default" + this.defaultLabelCounter + ":\n");
+        node.getStwo().apply(this);
+        String bodyPart = "main" + this.mainBodyCounter;
+        mipsString.append(bodyPart + ":\n");
+        this.mainBodyCounter++;
+        this.defaultLabelCounter++;
+        this.caseLabelCounter += caseStart;
     }
 
     /*****************************************
@@ -484,16 +606,66 @@ class PrintTree extends DepthFirstAdapter
         Object rightExpr = flapjacks.pop();
         String addOp = flapjacks.pop().toString();
         Object leftExpr = flapjacks.pop();
-        String nextRegister = this.incrementRegister();
-        mipsString.append("\tadd " + nextRegister + ", ");
-        mipsString.append(nextRegister + ", ");
-        mipsString.append(leftExpr.toString() + "\n");
+        //this technically won't work if the id is like $f or something but let's pretend that's not a thing
+        //anyway if one of them is a float, just convert the other to a float and store it to a float register
+        if (rightExpr instanceof String && rightExpr.toString().indexOf("$f") != -1) {
+            if (leftExpr instanceof String && leftExpr.toString().indexOf("$f") != -1) {
+                String nextRegister = this.incrementFloatRegister();
+                if (addOp.equals("add")) {
+                    addOp = "add.s";
+                }
+                else {
+                    addOp = "sub.s";
+                }
+                mipsString.append("\t").append(addOp).append(" ").append(nextRegister).append(", ");
+                mipsString.append(rightExpr).append(", ");
+                mipsString.append(leftExpr).append("\n");
+                flapjacks.push(null);
+                flapjacks.push(nextRegister);
+            } else {
+                String nextRegister = this.incrementFloatRegister();
+                mipsString.append("\tmtc1 ").append(leftExpr).append(", ").append(nextRegister).append("\n");
+                mipsString.append("\tcvt.s.w ").append(nextRegister + ", " + nextRegister);
+                if (addOp.equals("add")) {
+                    addOp = "add.s";
+                }
+                else {
+                    addOp = "sub.s";
+                }
+                mipsString.append("\t").append(addOp).append(" ").append(nextRegister).append(", ");
+                mipsString.append(nextRegister).append(", ");
+                mipsString.append(rightExpr).append("\n");
+                flapjacks.push(null);
+                flapjacks.push(nextRegister);
+            }
+        } else if (leftExpr instanceof String && leftExpr.toString().indexOf("$f") != -1) {
+            String nextRegister = this.incrementFloatRegister();
+            mipsString.append("\tmtc1 ").append(rightExpr).append(", ").append(nextRegister).append("\n");
+            mipsString.append("\tcvt.s.w ").append(nextRegister + ", " + nextRegister);
+            if (addOp.equals("add")) {
+                addOp = "add.s";
+            }
+            else {
+                addOp = "sub.s";
+            }
+            mipsString.append("\t").append(addOp).append(" ").append(nextRegister).append(", ");
+            mipsString.append(nextRegister).append(", ");
+            mipsString.append(leftExpr).append("\n");
+            flapjacks.push(null);
+            flapjacks.push(nextRegister);
+        } else {
+            //if we get here neither were floats so whatever carry on
+            String nextRegister = this.incrementRegister();
+            mipsString.append("\tadd " + nextRegister + ", ");
+            mipsString.append(nextRegister + ", ");
+            mipsString.append(leftExpr.toString() + "\n");
 
-        mipsString.append("\t" + addOp + " " + nextRegister + ", ");
-        mipsString.append(nextRegister + ", ");
-        mipsString.append(rightExpr.toString() + "\n");
-        flapjacks.push(null);
-        flapjacks.push(nextRegister);
+            mipsString.append("\t" + addOp + " " + nextRegister + ", ");
+            mipsString.append(nextRegister + ", ");
+            mipsString.append(rightExpr.toString() + "\n");
+            flapjacks.push(null);
+            flapjacks.push(nextRegister);
+        }
     }
 
     public void caseAPlusAddop(APlusAddop node) {
@@ -560,15 +732,32 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseARealFactor(ARealFactor node) {
         node.getRealnum().apply(this);
+        //TODO probably has something to do with this
+        String floatDataLabel = "float" + this.floatDataLabelCounter;
+        String newRegister = this.incrementFloatRegister();
+        Double floatNum = (Double)flapjacks.pop();
+        Symbol newSymbol = new Symbol(floatDataLabel, floatNum, "REAL");
+        symbolTable.add(floatDataLabel, newSymbol);
+        mipsString.append("\tl.s " + newRegister + ", " + floatDataLabel + "\n");
+        flapjacks.push(newRegister);
+        this.floatDataLabelCounter++;
     }
 
     public void caseAIdFactor(AIdFactor node) {
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-        String newRegister = "$t" + this.nextRegister;
-        mipsString.append("\tlw " + newRegister + " " + id + "\n");
+        String newRegister;
+        Symbol symbol = symbolTable.getValue(id);
+        if (symbol.getType().equals("REAL")) {
+            newRegister = this.incrementFloatRegister();
+            mipsString.append("\tl.s " + newRegister + ", " + id + "\n");
+        }
+        //TODO actually else?
+        else {
+            newRegister = this.incrementRegister();
+            mipsString.append("\tlw " + newRegister + ", " + id + "\n");
+        }
         flapjacks.push(newRegister);
-        nextRegister += 1;
     }
 
 
