@@ -432,15 +432,14 @@ class PrintTree extends DepthFirstAdapter
         
         changeScope(true, whileStmt);
         node.getStmtseq().apply(this);
+        changeScope(false, "");
 
         //Repeating this might fix our issue of not having the correct register
         node.getIdbool().apply(this);
         value = flapjacks.pop().toString();
         mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(whileStmt).append("\n");
-
         mipsString.append("\tj ").append(bodyPart).append("\n");
-
-        changeScope(false, "");
+        
         mipsString.append(bodyPart).append(": \n");
 
         this.whileLabelCounter++;
