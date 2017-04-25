@@ -18,20 +18,20 @@ public class Main{
             PrintTree tree = new PrintTree();
             ast.apply(tree);  //this is what gets the depth first search going
 
-            if(tree.getErrors().length() > 0) {
-                  throw new Exception(tree.getErrors());
-            }
-
             //Print warnings
             if(tree.getWarnings().length() > 0) {
+                  System.out.println("Warning(s): ");
                   System.out.println(tree.getWarnings());
+            }
+
+            if(tree.getErrors().length() > 0) {
+                  throw new Exception(tree.getErrors());
             }
 
             FileWriter.writeToFile(arguments[0], tree.getResult());
       }
       catch(Exception e){
-            System.out.println("Error(s): " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("Error(s): \n" + e.getMessage());
       }
    }
 }

@@ -342,8 +342,12 @@ class PrintTree extends DepthFirstAdapter
         }
 
         Symbol s = findInSymbolTable(this.symbolTable, id);
-        s.setValue(value);
-        addToSymbolTable(id, s);
+        if(s == null) {
+            this.errors.append("Undeclared variable: " + id + "\n");
+        } else {
+            s.setValue(value);
+            addToSymbolTable(id, s);
+        }
         
         if (!updateRegister.equals("")) {
             if (updateRegister.indexOf("$f") != -1) {
@@ -579,7 +583,7 @@ class PrintTree extends DepthFirstAdapter
             mipsString.append("\tsw ").append(currReg).append(", ").append(sym.getId()).append("\n");
         }
 
-        //NEED TO HANDLE STRING AND BOOL AND REAL HERE
+        //TODO: NEED TO HANDLE STRING AND BOOL AND REAL HERE
     }
 
     public void caseAPutcommandStmt(APutcommandStmt node) {
@@ -787,7 +791,7 @@ class PrintTree extends DepthFirstAdapter
         if(leftExp instanceof Integer) {
             mipsString.append("\tli ").append(reg1).append(", ").append(leftExp).append("\n");
         } else if(leftExp instanceof Double) {
-
+            //TODO: Handle comparing reals
         } else if(leftExp instanceof String) {
             //Might have to handle id vs string here
             mipsString.append("\tmove ").append(reg1).append(", ").append(leftExp).append("\n");
@@ -796,7 +800,7 @@ class PrintTree extends DepthFirstAdapter
         if(rightExp instanceof Integer) {
             mipsString.append("\tli ").append(reg2).append(", ").append(rightExp).append("\n");
         } else if(rightExp instanceof Double) {
-
+            //TODO: Handle comparing reals
         } else if(rightExp instanceof String) {
             //Might have to handle id vs string here
             mipsString.append("\tmove ").append(reg2).append(", ").append(rightExp).append("\n");

@@ -1,9 +1,11 @@
 BEGIN
     VOID main() {
-        y : REAL;
-        y := 2.0;
-        z : REAL;
-        z := y - 1.0;
-        PUT(z);
+        x : INT;
+        IF(TRUE) THEN {
+            x: REAL;
+            x := 3.4 + 5.4;
+            x: INT;
+            z := 5;
+        }
     }
 END
