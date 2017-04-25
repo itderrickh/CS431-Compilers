@@ -286,6 +286,7 @@ class PrintTree extends DepthFirstAdapter
     public void caseAProg(AProg node) {
         mipsString.append(".text\n");
         mipsString.append(".globl main\n");
+        data.append(".data\n");
 
         node.getClassmethodstmts().apply(this);
 
@@ -293,7 +294,6 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append("\tli $v0, 10\n").append("\tsyscall\n");
 
         //Write the data section
-        data.append(".data\n");
         data.append("\tNEWLINE: .asciiz \"\\n\"\n");
         data.append("\tFLOATONE: .float 1.0\n");
         traverseSymbols();
@@ -825,63 +825,59 @@ class PrintTree extends DepthFirstAdapter
         Object rightExpr = flapjacks.pop();
         String addOp = flapjacks.pop().toString();
         Object leftExpr = flapjacks.pop();
-        //this technically won't work if the id is like $f or something but let's pretend that's not a thing
-        //anyway if one of them is a float, just convert the other to a float and store it to a float register
-        if (rightExpr instanceof String && rightExpr.toString().indexOf("$f") != -1) {
-            if (leftExpr instanceof String && leftExpr.toString().indexOf("$f") != -1) {
-                String nextRegister = this.incrementFloatRegister();
-                if (addOp.equals("add")) {
-                    addOp = "add.s";
-                }
-                else {
-                    addOp = "sub.s";
-                }
-                mipsString.append("\t").append(addOp).append(" ").append(nextRegister).append(", ");
-                mipsString.append(rightExpr).append(", ");
-                mipsString.append(leftExpr).append("\n");
-                flapjacks.push(null);
-                flapjacks.push(nextRegister);
-            } else {
-                String nextRegister = this.incrementFloatRegister();
-                mipsString.append("\tmtc1 ").append(leftExpr).append(", ").append(nextRegister).append("\n");
-            mipsString.append("\tcvt.s.w ").append(nextRegister + ", " + nextRegister);
-                if (addOp.equals("add")) {
-                    addOp = "add.s";
-                }
-                else {
-                    addOp = "sub.s";
-                }
-                mipsString.append("\t").append(addOp).append(" ").append(nextRegister).append(", ");
-                mipsString.append(nextRegister).append(", ");
-                mipsString.append(rightExpr).append("\n");
-                flapjacks.push(null);
-                flapjacks.push(nextRegister);
-            }
-        } else if (leftExpr instanceof String && leftExpr.toString().indexOf("$f") != -1) {
+
+        String leftReg = "";
+        String rightReg = "";
+        //Here we will check if leftExpr is an INT, REAL or a register
+        if(leftExpr instanceof Integer && !(rightExpr instanceof Integer)) {
+            //Do the conversion here if right isn't int
+            leftReg = this.incrementFloatRegister();
+            mipsString.append("\tmtc1 ").append(leftExpr).append(", ").append(leftReg).append("\n");
+            mipsString.append("\tcvt.s.w ").append(leftReg + ", " + leftReg);
+        } else if(leftExpr instanceof Double) {
+            leftReg = this.incrementFloatRegister();
+            String floatDataLabel = "float" + this.floatDataLabelCounter;
+            data.append("\t").append(floatDataLabel).append(": .float ").append(leftExpr).append("\n");
+            mipsString.append("\tl.s " + rightReg + ", " + floatDataLabel + "\n");
+            this.floatDataLabelCounter++;
+        } else if(leftExpr instanceof String) { //Is register
+            leftReg = leftExpr.toString();
+        }
+
+        //Here we will check if rightExpr is an INT, REAL or a register
+        if(rightExpr instanceof Integer && !(leftExpr instanceof Integer)) {
+            //Do the conversion here if left isn't int
+            rightReg = this.incrementFloatRegister();
+            mipsString.append("\tmtc1 ").append(rightReg).append(", ").append(rightReg).append("\n");
+            mipsString.append("\tcvt.s.w ").append(rightReg + ", " + rightReg);
+        } else if(rightExpr instanceof Double) {
+            rightReg = this.incrementFloatRegister();
+            String floatDataLabel = "float" + this.floatDataLabelCounter;
+            data.append("\t").append(floatDataLabel).append(": .float ").append(rightExpr).append("\n");
+            mipsString.append("\tl.s " + rightReg + ", " + floatDataLabel + "\n");
+            this.floatDataLabelCounter++;
+        } else if(rightExpr instanceof String) { //Is register
+            rightReg = rightExpr.toString();
+        }
+
+        //Do integer math
+        if(rightExpr instanceof Integer && leftExpr instanceof Integer) {
+            //if we get here neither were floats so whatever carry on
+            String nextRegister = this.incrementRegister();
+            mipsString.append("\tadd " + nextRegister + ", ").append(nextRegister + ", ").append(leftExpr.toString() + "\n");
+            mipsString.append("\t" + addOp + " " + nextRegister + ", ").append(nextRegister + ", ").append(rightExpr.toString() + "\n");
+            flapjacks.push(null);
+            flapjacks.push(nextRegister);
+        } else {
+            //Do float math with leftReg and rightReg
             String nextRegister = this.incrementFloatRegister();
-            mipsString.append("\tmtc1 ").append(rightExpr).append(", ").append(nextRegister).append("\n");
-            mipsString.append("\tcvt.s.w ").append(nextRegister + ", " + nextRegister);
             if (addOp.equals("add")) {
                 addOp = "add.s";
             }
             else {
                 addOp = "sub.s";
             }
-            mipsString.append("\t").append(addOp).append(" ").append(nextRegister).append(", ");
-            mipsString.append(nextRegister).append(", ");
-            mipsString.append(leftExpr).append("\n");
-            flapjacks.push(null);
-            flapjacks.push(nextRegister);
-        } else {
-            //if we get here neither were floats so whatever carry on
-            String nextRegister = this.incrementRegister();
-            mipsString.append("\tadd " + nextRegister + ", ");
-            mipsString.append(nextRegister + ", ");
-            mipsString.append(leftExpr.toString() + "\n");
-
-            mipsString.append("\t" + addOp + " " + nextRegister + ", ");
-            mipsString.append(nextRegister + ", ");
-            mipsString.append(rightExpr.toString() + "\n");
+            mipsString.append("\t").append(addOp).append(" ").append(nextRegister).append(", ").append(leftReg).append(", ").append(rightReg).append("\n");
             flapjacks.push(null);
             flapjacks.push(nextRegister);
         }

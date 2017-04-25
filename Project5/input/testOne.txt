@@ -3,7 +3,7 @@ BEGIN
         y : REAL;
         y := 2.0;
         z : REAL;
-        z := y + 1.0;
+        z := y - 1.0;
         PUT(z);
     }
 END
