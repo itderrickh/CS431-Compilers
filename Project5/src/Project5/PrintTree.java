@@ -507,10 +507,38 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void caseAAssignStmtexprtail(AAssignStmtexprtail node) {
-
-        //TODO: handle this
         node.getId().apply(this);
         node.getExpr().apply(this);
+        String updateRegister = "";
+        if (flapjacks.size() >= 3) {
+            updateRegister = flapjacks.pop().toString();
+        }
+
+        Object value = flapjacks.pop();
+        String id = flapjacks.pop().toString();
+        String type = "";
+        if(value instanceof Integer) {
+            type = "INT";
+        } else if(value instanceof String) {
+            type = "REAL";
+        }
+
+        Symbol s = findInSymbolTable(this.symbolTable, id);
+        if(s == null) {
+            this.errors.append("Undeclared variable: " + id + "\n");
+        } else {
+            s.setValue(value);
+            addToSymbolTable(id, s);
+        }
+        
+        if (!updateRegister.equals("")) {
+            if (updateRegister.indexOf("$f") != -1) {
+                mipsString.append("\ts.s ").append(updateRegister).append(", ").append(s.getId()).append("\n");
+            }
+            else {
+                mipsString.append("\tsw ").append(updateRegister).append(", ").append(s.getId()).append("\n");
+            }
+        }
     }
 
     public void caseAForStmt(AForStmt node) {
@@ -577,13 +605,15 @@ class PrintTree extends DepthFirstAdapter
         String id = flapjacks.pop().toString();
         Symbol sym = findInSymbolTable(this.symbolTable, id);
 
-        if(sym.getType().equals("INT")) {
+        if(sym.getType().equals("INT") && sym.getType().equals("BOOLEAN")) {
             mipsString.append("\taddi $v0, $zero, 5\n\tsyscall\n");
             mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
             mipsString.append("\tsw ").append(currReg).append(", ").append(sym.getId()).append("\n");
+        } else if(sym.getType().equals("REAL")) {
+            //TODO: handle reals here
+        } else if(sym.getType().equals("STRING")) {
+            //We aren't going to handle strings presently
         }
-
-        //TODO: NEED TO HANDLE STRING AND BOOL AND REAL HERE
     }
 
     public void caseAPutcommandStmt(APutcommandStmt node) {
