@@ -7,12 +7,20 @@ public class Symbol {
     private String identifier;
     private Object value;
     private String type;
+    private boolean used;
+    private String name;
 
-    public Symbol(String identifier, Object value, String type) {
+    public Symbol(String identifier, Object value, String type, String name) {
        this.register = "";
        this.identifier = identifier;
        this.value = value;
        this.type = type;
+       this.used = false;
+       this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     public String getId() {
@@ -29,5 +37,13 @@ public class Symbol {
 
     public String getType() {
         return this.type;
+    }
+
+    public boolean isUsed() {
+        return used;
+    }
+
+    public void setUsed() {
+        this.used = true;
     }
 }

@@ -14,6 +14,7 @@ class PrintTree extends DepthFirstAdapter
     private ITable symbolTable;
 
     private StringBuilder errors;
+    private StringBuilder warnings;
     private int nextRegister = 0;
     private int ifLabelCounter = 0;
     private int elseLabelCounter = 0;
@@ -31,6 +32,7 @@ class PrintTree extends DepthFirstAdapter
         mipsString = new StringBuilder();
         data = new StringBuilder();
         errors = new StringBuilder();
+        warnings = new StringBuilder();
 	}
 
     public void addScope(String id) {
@@ -59,7 +61,7 @@ class PrintTree extends DepthFirstAdapter
                 Symbol s = table.globalVariables.getValue(id);
                 if(!s.getType().equals(sym.getType())) {
                     this.errors.append("Invalid type exception: ")
-                        .append(sym.getId())
+                        .append(sym.getName())
                         .append(" is type ")
                         .append(s.getType())
                         .append(" but was assigned type ")
@@ -76,7 +78,7 @@ class PrintTree extends DepthFirstAdapter
                 Symbol s = table.classVariables.getValue(id);
                 if(!s.getType().equals(sym.getType())) {
                     this.errors.append("Invalid type exception: ")
-                        .append(sym.getId())
+                        .append(sym.getName())
                         .append(" is type ")
                         .append(s.getType())
                         .append(" but was assigned type ")
@@ -93,7 +95,7 @@ class PrintTree extends DepthFirstAdapter
                 Symbol s = table.methodVariables.getValue(id);
                 if(!s.getType().equals(sym.getType())) {
                     this.errors.append("Invalid type exception: ")
-                        .append(sym.getId())
+                        .append(sym.getName())
                         .append(" is type ")
                         .append(s.getType())
                         .append(" but was assigned type ")
@@ -110,7 +112,7 @@ class PrintTree extends DepthFirstAdapter
                 Symbol s = table.innerVariables.getValue(id);
                 if(!s.getType().equals(sym.getType())) {
                     this.errors.append("Invalid type exception: ")
-                        .append(sym.getId())
+                        .append(sym.getName())
                         .append(" is type ")
                         .append(s.getType())
                         .append(" but was assigned type ")
@@ -175,6 +177,12 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void doSymbol(Symbol s) {
+        if(!s.isUsed()) {
+            this.warnings.append("Variable ")
+                .append(s.getName())
+                .append(" was not used\n");
+        }
+
         if(s != null) {
             data.append("\t");
 
@@ -198,8 +206,7 @@ class PrintTree extends DepthFirstAdapter
             }
             data.append("\n");
         } else {
-            //Turn this into a warning later
-            errors.append("Undeclared variable: " + s + '\n');
+            errors.append("Undeclared variable: " + s.getName() + '\n');
         }
     }
 
@@ -242,6 +249,10 @@ class PrintTree extends DepthFirstAdapter
 
     public String getErrors() {
         return errors.toString();
+    }
+
+    public String getWarnings() {
+        return warnings.toString();
     }
 
     public String incrementRegister() {
@@ -332,6 +343,7 @@ class PrintTree extends DepthFirstAdapter
 
         Symbol s = findInSymbolTable(this.symbolTable, id);
         s.setValue(value);
+        s.setUsed();
         addToSymbolTable(id, s);
         
         if (!updateRegister.equals("")) {
@@ -352,6 +364,7 @@ class PrintTree extends DepthFirstAdapter
 
         Symbol s = findInSymbolTable(this.symbolTable, id);
         s.setValue(value);
+        s.setUsed();
         addToSymbolTable(id, s);
     }
 
@@ -361,7 +374,7 @@ class PrintTree extends DepthFirstAdapter
         String type = flapjacks.pop().toString();
         String id = flapjacks.pop().toString();
 
-        addToSymbolTable(id, new Symbol("variable" + this.variableCounter, null, type));
+        addToSymbolTable(id, new Symbol("variable" + this.variableCounter, null, type, id));
         this.variableCounter++;
     }
 
@@ -519,7 +532,9 @@ class PrintTree extends DepthFirstAdapter
         }
 
         //Check the value to make sure the old type still is legitimate
-        addToSymbolTable(id, new Symbol(sym.getId(), value, type));
+        Symbol s = new Symbol(sym.getId(), value, type, id);
+        s.setUsed();
+        addToSymbolTable(id, s);
         
         if (!updateRegister.equals("")) {
             mipsString.append("\tsw ").append(updateRegister).append(", ").append(id).append("\n");
@@ -574,6 +589,8 @@ class PrintTree extends DepthFirstAdapter
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
         Symbol sym = findInSymbolTable(this.symbolTable, id);
+        sym.setUsed();
+        addToSymbolTable(id, sym);
 
         String type = sym.getType();
         if(type.equals("STRING")) {
@@ -606,6 +623,8 @@ class PrintTree extends DepthFirstAdapter
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
         Symbol symbol = findInSymbolTable(this.symbolTable, id);
+        symbol.setUsed();
+        addToSymbolTable(id, symbol);
         if (symbol.getType().equals("REAL")) {
             currReg = this.incrementFloatRegister();
             mipsString.append("\tl.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
@@ -628,6 +647,8 @@ class PrintTree extends DepthFirstAdapter
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
         Symbol symbol = findInSymbolTable(this.symbolTable, id);
+        symbol.setUsed();
+        addToSymbolTable(id, symbol);
         if (symbol.getType().equals("REAL")) {
             currReg = this.incrementFloatRegister();
             mipsString.append("\tl.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
@@ -651,6 +672,7 @@ class PrintTree extends DepthFirstAdapter
         String id = flapjacks.pop().toString();
         Symbol sym = findInSymbolTable(this.symbolTable, id);
         sym.setValue(value);
+        sym.setUsed();
         //Check the value to make sure the old type still is legitimate
         addToSymbolTable(id, sym);
         variableCounter++;
@@ -934,7 +956,7 @@ class PrintTree extends DepthFirstAdapter
         String floatDataLabel = "float" + this.floatDataLabelCounter;
         String newRegister = this.incrementFloatRegister();
         Double floatNum = (Double)flapjacks.pop();
-        Symbol newSymbol = new Symbol(floatDataLabel, floatNum, "REAL");
+        Symbol newSymbol = new Symbol(floatDataLabel, floatNum, "REAL", floatDataLabel);
         addToSymbolTable(floatDataLabel, newSymbol);
         mipsString.append("\tl.s " + newRegister + ", " + floatDataLabel + "\n");
         flapjacks.push(newRegister);
@@ -946,6 +968,9 @@ class PrintTree extends DepthFirstAdapter
         String id = flapjacks.pop().toString();
         String newRegister;
         Symbol symbol = findInSymbolTable(this.symbolTable, id);
+        symbol.setUsed();
+        addToSymbolTable(id, symbol);
+
         if (symbol.getType().equals("REAL")) {
             newRegister = this.incrementFloatRegister();
             mipsString.append("\tl.s " + newRegister + ", " + symbol.getId() + "\n");

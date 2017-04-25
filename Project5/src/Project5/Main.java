@@ -22,11 +22,15 @@ public class Main{
                   throw new Exception(tree.getErrors());
             }
 
+            //Print warnings
+            if(tree.getWarnings().length() > 0) {
+                  System.out.println(tree.getWarnings());
+            }
+
             FileWriter.writeToFile(arguments[0], tree.getResult());
       }
       catch(Exception e){
-            e.printStackTrace();
-            //System.out.println("Error: " + e.getMessage());
+            System.out.println("Error(s): " + e.getMessage());
       }
    }
 }

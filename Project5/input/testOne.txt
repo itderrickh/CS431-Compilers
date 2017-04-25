@@ -12,5 +12,7 @@ BEGIN
 
             x++;
         }
+
+        PUT(y);
     }
 END
