@@ -2,26 +2,16 @@ package Project5.symbols;
 
 import java.util.*;
 
-public class MethodTable {
-    private HashMap<String, SymbolTable> methodTables = new HashMap<>();
-    private HashMap<String, VariableTable> variableTable = new HashMap<>();
+public class MethodTable implements ITable {
+    public SymbolTable methodVariables = new SymbolTable();
+    public HashMap<String, VariableTable> innerScopes = new HashMap<>();
+    private ITable parent;
 
-    public void putVariableTable(String name) {
-        VariableTable t = variableTable.get(name);
-        if(t == null) {
-            variableTable.put(name, new VariableTable());
-        }
+    public ITable getParent() {
+        return this.parent;
     }
 
-    public void add(String name, Symbol sym) {
-        methodTables.get(name).add(name, sym);
-    }
-
-    public void addToVariableTable(String variableTableName, String name, Symbol sym) {
-        variableTable.get(variableTableName).add(name, sym);
-    }
-
-    public VariableTable getVariableTable(String name) {
-        return variableTable.get(name);
+    public void setParent(ITable parent) {
+        this.parent = parent;
     }
 }

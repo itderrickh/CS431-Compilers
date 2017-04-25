@@ -2,8 +2,17 @@ package Project5.symbols;
 
 import java.util.*;
 
-public class SymbolTable {
+public class SymbolTable implements ITable {
     private HashMap<String, Symbol> symbolTable;
+    private ITable parent;
+
+    public ITable getParent() {
+        return this.parent;
+    }
+
+    public void setParent(ITable parent) {
+        this.parent = parent;
+    }
 
     public SymbolTable() {
         this.symbolTable = new HashMap<>();
@@ -15,6 +24,10 @@ public class SymbolTable {
 
     public void update(String id, Symbol sym) {
         this.symbolTable.replace(id, sym);
+    }
+
+    public boolean containsKey(String id) {
+        return this.symbolTable.containsKey(id);
     }
 
     public Symbol getValue(String id) {

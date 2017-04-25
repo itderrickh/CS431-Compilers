@@ -2,18 +2,15 @@ package Project5.symbols;
 
 import java.util.*;
 
-public class VariableTable {
-    private HashMap<String, SymbolTable> variableTables = new HashMap<>();
+public class VariableTable implements ITable {
+    public SymbolTable innerVariables = new SymbolTable();
+    private ITable parent;
 
-    public void putVariableTables(String name) {
-        variableTables.put(name, new SymbolTable());
+    public ITable getParent() {
+        return this.parent;
     }
 
-    public void add(String name, Symbol sym) {
-        variableTables.get(name).add(name, sym);
-    }
-
-    public SymbolTable getTable(String name) {
-        return variableTables.get(name);
+    public void setParent(ITable parent) {
+        this.parent = parent;
     }
 }

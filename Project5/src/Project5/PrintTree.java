@@ -9,7 +9,7 @@ import java.util.*;
 class PrintTree extends DepthFirstAdapter
 {
     private Stack<Object> flapjacks = new Stack<Object>();
-    private SymbolTable symbolTable;
+    private ITable symbolTable;
     private StringBuilder mipsString;
     private StringBuilder data;
 
@@ -31,6 +31,170 @@ class PrintTree extends DepthFirstAdapter
         data = new StringBuilder();
         errors = new StringBuilder();
 	}
+
+    public void addScope(String id) {
+        if(symbolTable instanceof GlobalTable) {
+            GlobalTable table = (GlobalTable) symbolTable;
+            ClassTable newTable = new ClassTable();
+            newTable.setParent((ITable)table);
+            table.globalClasses.put(id, newTable);
+        } else if(symbolTable instanceof ClassTable) {
+            ClassTable table = (ClassTable) symbolTable;
+            MethodTable newTable = new MethodTable();
+            newTable.setParent((ITable)table);
+            table.classFunctions.put(id, newTable);
+        } else if(symbolTable instanceof MethodTable) {
+            MethodTable table = (MethodTable) symbolTable;
+            VariableTable newTable = new VariableTable();
+            newTable.setParent((ITable)table);
+            table.innerScopes.put(id, newTable);
+        }
+    }
+
+    public void addToSymbolTable(String id, Symbol sym) {
+        if(symbolTable instanceof GlobalTable) {
+            GlobalTable table = (GlobalTable) symbolTable;
+            if(table.globalVariables.containsKey(id)) {
+                return table.globalVariables.getValue(id);
+            }
+        } else if(symbolTable instanceof ClassTable) {
+            ClassTable table = (ClassTable) symbolTable;
+            if(table.classVariables.containsKey(id)) {
+                return table.classVariables.getValue(id);
+            } else {
+                return findInSymbolTable(table.getParent(), id);
+            }
+        } else if(symbolTable instanceof MethodTable) {
+            MethodTable table = (MethodTable) symbolTable;
+            if(table.methodVariables.containsKey(id)) {
+                return table.methodVariables.getValue(id);
+            } else {
+                return findInSymbolTable(table.getParent(), id);
+            }
+        } else if(symbolTable instanceof VariableTable) {
+            VariableTable table = (VariableTable) symbolTable;
+            if(table.innerVariables.containsKey(id)) {
+                return table.innerVariables.getValue(id);
+            } else {
+                return findInSymbolTable(table.getParent(), id);
+            }
+        }
+    }
+
+    public ITable changeScope(Boolean deeper, String id) {
+        if(deeper) {
+            if(symbolTable instanceof GlobalTable) {
+                GlobalTable table = (GlobalTable) symbolTable;
+                this.symbolTable = (ITable)table.globalClasses.get(id);
+            } else if(symbolTable instanceof ClassTable) {
+                ClassTable table = (ClassTable) symbolTable;
+                this.symbolTable = (ITable)table.classFunctions.get(id);
+            } else if(symbolTable instanceof MethodTable) {
+                MethodTable table = (MethodTable) symbolTable;
+                this.symbolTable = (ITable)table.innerScopes.get(id);
+            }
+        } else {
+            this.symbolTable = this.symbolTable.getParent();
+        }
+    }
+
+    public Symbol findInSymbolTable(ITable symbolTable, String id) {
+        if(symbolTable instanceof GlobalTable) {
+            GlobalTable table = (GlobalTable) symbolTable;
+            if(table.globalVariables.containsKey(id)) {
+                return table.globalVariables.getValue(id);
+            }
+        } else if(symbolTable instanceof ClassTable) {
+            ClassTable table = (ClassTable) symbolTable;
+            if(table.classVariables.containsKey(id)) {
+                return table.classVariables.getValue(id);
+            } else {
+                return findInSymbolTable(table.getParent(), id);
+            }
+        } else if(symbolTable instanceof MethodTable) {
+            MethodTable table = (MethodTable) symbolTable;
+            if(table.methodVariables.containsKey(id)) {
+                return table.methodVariables.getValue(id);
+            } else {
+                return findInSymbolTable(table.getParent(), id);
+            }
+        } else if(symbolTable instanceof VariableTable) {
+            VariableTable table = (VariableTable) symbolTable;
+            if(table.innerVariables.containsKey(id)) {
+                return table.innerVariables.getValue(id);
+            } else {
+                return findInSymbolTable(table.getParent(), id);
+            }
+        }
+
+        return null;
+    }
+
+    public void doSymbol(Symbol s) {
+        if(s != null) {
+            data.append("\t");
+
+            if(s.getValue() == null) {
+                //Set the variable to the default value
+                if(s.getType().equals("INT")) {
+                    data.append(s).append(": ").append(".word 0");
+                } else if(s.getType().equals("BOOLEAN")) {
+                    data.append(s).append(": ").append(".word 0");
+                } else if(s.getType().equals("STRING")) {
+                    data.append(s).append(": ").append(".asciiz \"\"");
+                } else if(s.getType().equals("REAL")) {
+                    data.append(s).append(": ").append(".float 0");
+                }
+            } else if(s.getValue() instanceof String) {
+                data.append(s).append(": ").append(".asciiz ").append(s.getValue().toString());
+            } else if(s.getValue() instanceof Double) {
+                data.append(s).append(": ").append(".float ").append(s.getValue().toString());
+            } else if(s.getValue() instanceof Integer) {
+                data.append(s).append(": ").append(".word ").append(s.getValue().toString());
+            }
+            data.append("\n");
+        } else {
+            //Turn this into a warning later
+            errors.append("Undeclared variable: " + s + '\n');
+        }
+    }
+
+    public void traverseSymbols() {
+        //Go to the top of the symbolTable
+        while(!(this.symbolTable instanceof GlobalTable)) {
+            this.symbolTable = (ITable)this.symbolTable.getParent();
+        }
+
+        GlobalTable gt = (GlobalTable)this.symbolTable;
+        for(String g : gt.globalVariables.getKeys()) {
+            Symbol s = gt.globalVariables.getValue(g);
+            doSymbol(s);
+        }
+
+        for(String gc: gt.globalClasses.getKeys()) {
+            ClassTable ct = gt.globalClasses.get(gc);
+            for(String c : ct.classVariables.getKeys()) {
+                Symbol sy = ct.classVariables.getVariable(g);
+                doSymbol(sy);
+            }
+
+            for(String cg: ct.classFunctions.getKeys()) {
+                MethodTable mt = ct.classFunctions.get(cg);
+                for(String g : mt.methodVariables.getKeys()) {
+                    Symbol sym = mt.methodVariables.getValue(g);
+                    doSymbol(sym);
+                }
+
+                for(String mg: mt.innerScopes.getKeys()) {
+                    VariableTable vt = mt.innerScopes.get(cg);
+                    for(String v : vt.innerVariables.getKeys()) {
+                        Symbol symb = vt.innerVariables.getValue(g);
+                        doSymbol(symb);
+                    }
+                }
+            }
+        }
+    }
 
     public String getErrors() {
         return errors.toString();
@@ -77,36 +241,7 @@ class PrintTree extends DepthFirstAdapter
         data.append(".data\n");
         data.append("\tNEWLINE: .asciiz \"\\n\"\n");
         data.append("\tFLOATONE: .float 1.0\n");
-        for(String s : this.symbolTable.getKeys()) {
-            Symbol value = this.symbolTable.getValue(s);
-            
-            if(value != null) {
-                data.append("\t");
-
-                if(value.getValue() == null) {
-                    //Set the variable to the default value
-                    if(value.getType().equals("INT")) {
-                        data.append(s).append(": ").append(".word 0");
-                    } else if(value.getType().equals("BOOLEAN")) {
-                        data.append(s).append(": ").append(".word 0");
-                    } else if(value.getType().equals("STRING")) {
-                        data.append(s).append(": ").append(".asciiz \"\"");
-                    } else if(value.getType().equals("REAL")) {
-                        data.append(s).append(": ").append(".float 0");
-                    }
-                } else if(value.getValue() instanceof String) {
-                    data.append(s).append(": ").append(".asciiz ").append(value.getValue().toString());
-                } else if(value.getValue() instanceof Double) {
-                    data.append(s).append(": ").append(".float ").append(value.getValue().toString());
-                } else if(value.getValue() instanceof Integer) {
-                    data.append(s).append(": ").append(".word ").append(value.getValue().toString());
-                }
-                data.append("\n");
-            } else {
-                //Turn this into a warning later
-                errors.append("Undeclared variable: " + s + '\n');
-            }
-        }
+        traverseSymbols();
     }
 
     public void caseAMorestatementsClassmethodstmts(AMorestatementsClassmethodstmts node) {
