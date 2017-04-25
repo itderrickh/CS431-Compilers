@@ -2,7 +2,8 @@ BEGIN
     VOID main() {
         y : REAL;
         y := 2.0;
-        y--;
-        PUT(y);
+        z : REAL;
+        z := 1.0;
+        PUT(z);
     }
 END
