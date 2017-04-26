@@ -891,8 +891,6 @@ class PrintTree extends DepthFirstAdapter
         Object rightExp = flapjacks.pop();
         String cond = flapjacks.pop().toString();
         Object leftExp = flapjacks.pop();
-        System.out.println(rightExp);
-        System.out.println(leftExp);
 
         //if neither is double then do normal stuff
         if (!((rightExp instanceof String && rightExp.toString().indexOf("$f") != -1) || leftExp instanceof String && leftExp.toString().indexOf("$f")!= -1)) {
