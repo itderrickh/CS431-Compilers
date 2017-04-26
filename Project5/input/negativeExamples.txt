@@ -1,0 +1,11 @@
+BEGIN
+    VOID main() {
+        w : INT;
+        x : STRING;
+        y : REAL;
+        z : BOOLEAN;
+
+        w : BOOLEAN;
+        PUT(h);
+    }
+END

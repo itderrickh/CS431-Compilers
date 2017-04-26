@@ -37,8 +37,9 @@
         <java classname="Project5.Main" classpath="${dir.build}" input="input/Examples.txt">
             <arg line="output/Examples.s"/>
         </java>
-        <!--<java classname="Project5.Main" classpath="${dir.build}" input="input/testOne.txt">
-            <arg line="output/testOne.s"/>
+        <!-- NEGATIVE EXAMPLES -->
+        <!--<java classname="Project5.Main" classpath="${dir.build}" input="input/negativeExamples.txt">
+            <arg line="output/negativeExamples.s"/>
         </java>-->
     </target>
     
