@@ -1105,19 +1105,94 @@ class PrintTree extends DepthFirstAdapter
         Object rightFactor = flapjacks.pop();
         String multOp = flapjacks.pop().toString();
         Object leftTerm = flapjacks.pop();
-        String nextRegister = this.incrementRegister();
-        mipsString.append("\tadd " + nextRegister + ", ");
-        mipsString.append(nextRegister + ", ");
-        mipsString.append(leftTerm.toString() + "\n");
 
-        mipsString.append("\t" + multOp + " ");
-        mipsString.append(nextRegister + ", ");
-        mipsString.append(rightFactor.toString() + "\n");
+        String leftReg = "";
+        String rightReg = "";
+        //Here we will check if leftExpr is an INT, REAL or a register
+        if(leftTerm instanceof Integer && !(leftTerm instanceof Integer)) {
+            //Do the conversion here if right isn't int
+            leftReg = this.incrementFloatRegister();
+            String nextIntReg = this.incrementRegister();
+            mipsString.append("\tli ").append(nextIntReg).append(", ").append(leftTerm).append("\n");
+            mipsString.append("\tmtc1 ").append(nextIntReg).append(", ").append(leftReg).append("\n");
+            mipsString.append("\tcvt.s.w ").append(leftReg + ", " + leftReg + "\n");
+        } else if(leftTerm instanceof Double) {
+            leftReg = this.incrementFloatRegister();
+            String floatDataLabel = "float" + this.floatDataLabelCounter;
+            data.append("\t").append(floatDataLabel).append(": .float ").append(leftTerm).append("\n");
+            mipsString.append("\tl.s " + leftReg + ", " + floatDataLabel + "\n");
+            this.floatDataLabelCounter++;
+        } else if(leftTerm instanceof String && leftTerm.toString().contains("$")) { //Is register
+            leftReg = leftTerm.toString();
+        } else if(leftTerm instanceof String) {
+            Symbol s = findInSymbolTable(this.symbolTable, leftTerm.toString());
+            //Check type of symbol INT vs FLOAT
+            if(s.getType().equals("INT")) {
+                String nextReg = this.incrementRegister();
+                mipsString.append("\tlw ").append(nextReg).append(", ").append(s.getId()).append("\n");
+                leftReg = this.incrementFloatRegister();
+                mipsString.append("\tcvt.s.w").append(leftReg).append(", ").append(nextReg).append("\n");
+                //Convert word to s
+            } else if(s.getType().equals("REAL")) {
+                leftReg = this.incrementFloatRegister();
+                mipsString.append("\tl.s").append(leftReg).append(", ").append(s.getId()).append("\n");
+            }
+        }
+        //Here we will check if rightFactor is an INT, REAL or a register
+        if(rightFactor instanceof Integer && !(leftTerm instanceof Integer)) {
+            //Do the conversion here if left isn't int
+            rightReg = this.incrementFloatRegister();
+            String nextIntReg = this.incrementRegister();
+            mipsString.append("\tli ").append(nextIntReg).append(", ").append(rightFactor).append("\n");
+            mipsString.append("\tmtc1 ").append(nextIntReg).append(", ").append(rightReg).append("\n");
+            mipsString.append("\tcvt.s.w ").append(rightReg + ", " + rightReg + "\n");
+        } else if(rightFactor instanceof Double) {
+            rightReg = this.incrementFloatRegister();
+            String floatDataLabel = "float" + this.floatDataLabelCounter;
+            data.append("\t").append(floatDataLabel).append(": .float ").append(rightFactor).append("\n");
+            mipsString.append("\tl.s " + rightReg + ", " + floatDataLabel + "\n");
+            this.floatDataLabelCounter++;
+        } else if(rightFactor instanceof String && rightFactor.toString().contains("$")) { //Is register
+            rightReg = rightFactor.toString();
+        } else if(rightFactor instanceof String) {
+            Symbol s = findInSymbolTable(this.symbolTable, rightFactor.toString());
+            //Check type of symbol INT vs FLOAT
+            if(s.getType().equals("INT")) {
+                String nextReg = this.incrementRegister();
+                mipsString.append("\tlw ").append(nextReg).append(", ").append(s.getId()).append("\n");
+                rightReg = this.incrementFloatRegister();
+                mipsString.append("\tcvt.s.w").append(rightReg).append(", ").append(nextReg).append("\n");
+                //Convert word to s
+            } else if(s.getType().equals("REAL")) {
+                rightReg = this.incrementFloatRegister();
+                mipsString.append("\tl.s").append(rightReg).append(", ").append(s.getId()).append("\n");
+            }
+        }
+
+        //Do integer math
+        if(rightFactor instanceof Integer && leftTerm instanceof Integer) {
+            //if we get here neither were floats so whatever carry on
+            String nextRegister = this.incrementRegister();
+            mipsString.append("\tadd " + nextRegister + ", ").append(nextRegister + ", ").append(leftTerm.toString() + "\n");
+            mipsString.append("\t" + multOp + " " + nextRegister + ", ").append(nextRegister + ", ").append(rightFactor.toString() + "\n");
+        } else {
+            //Do float math with leftReg and rightReg
+            String nextRegister = this.incrementFloatRegister();
+            if (multOp.equals("mult")) {
+                multOp = "mul.s";
+            }
+            else {
+                multOp = "div.s";
+            }
+            mipsString.append("\t").append(multOp).append(" ").append(nextRegister).append(", ").append(leftReg).append(", ").append(rightReg).append("\n");
+        }
+
+        String nr = this.incrementRegister();
 
         //only move the lower register, because nobody needs more than 32 bits
-        mipsString.append("\tmflo "+ nextRegister + "\n");
+        mipsString.append("\tmflo "+ nr + "\n");
         flapjacks.push(null);
-        flapjacks.push(nextRegister);
+        flapjacks.push(nr);
     }
 
     /*****************************************

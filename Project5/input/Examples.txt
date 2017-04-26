@@ -18,6 +18,22 @@ BEGIN
             }
         }
 
+        SWITCH(w) {
+            CASE(4):
+                w := w / 4;
+                PUT(w);
+                BREAK;
+            CASE(5):
+                w := w * 5;
+                PUT(w);
+            CASE(6):
+                w := w + 4;
+                PUT(w);
+                BREAK;
+            DEFAULT:
+                PUT(w);
+        }
+
         x := "Hello World";
         FOR(INT h := 10; h > 5; h--) {
             PUT(x);
