@@ -1,7 +1,11 @@
 BEGIN
     VOID main() {
-        x : REAL;
+        x : INT;
         x := GET();
-        PUT(x);
+        y : INT;
+        y := GET();
+        z : INT;
+        z := x < y;
+        PUT(z);
     }
 END

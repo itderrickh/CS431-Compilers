@@ -34,8 +34,8 @@
     </target>
 
     <target name="run">
-        <java classname="Project5.Main" classpath="${dir.build}" input="input/Examples.txt">
-            <arg line="output/Examples.s"/>
+        <java classname="Project5.Main" classpath="${dir.build}" input="input/testOne.txt">
+            <arg line="output/testOne.s"/>
         </java>
         <!--<java classname="Project5.Main" classpath="${dir.build}" input="input/testOne.txt">
             <arg line="output/testOne.s"/>
