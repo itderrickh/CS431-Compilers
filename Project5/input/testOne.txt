@@ -1,6 +1,6 @@
 BEGIN
     VOID main() {
-        x : INT;
+        x : REAL;
         x := GET();
         y : INT;
         y := GET();

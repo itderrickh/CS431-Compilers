@@ -668,7 +668,7 @@ class PrintTree extends DepthFirstAdapter
         String id = flapjacks.pop().toString();
         Symbol sym = findInSymbolTable(this.symbolTable, id);
 
-        if(sym.getType().equals("INT") && sym.getType().equals("BOOLEAN")) {
+        if(sym.getType().equals("INT") || sym.getType().equals("BOOLEAN")) {
             mipsString.append("\taddi $v0, $zero, 5\n\tsyscall\n");
             mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
             mipsString.append("\tsw ").append(currReg).append(", ").append(sym.getId()).append("\n");
@@ -773,9 +773,19 @@ class PrintTree extends DepthFirstAdapter
             this.errors.append("Undeclared variable: " + id + "\n");
         } else {
             addToSymbolTable(id, sym);
-            String nextReg = this.incrementRegister();
-            mipsString.append("\tli ").append(nextReg).append(", ").append(value).append("\n");
-            mipsString.append("\tsw ").append(nextReg).append(", ").append(sym.getId()).append("\n");
+            if (value instanceof String) {
+                if (value.toString().indexOf("$t") != -1) { //already exists in a t register, just store it
+                    mipsString.append("\tsw ").append(value.toString()).append(", ").append(sym.getId()).append("\n");
+                }
+                else if (value.toString().indexOf("$f") != -1) {
+                    mipsString.append("\ts.s ").append(value.toString()).append(", ").append(sym.getId()).append("\n");
+                }
+            } else {
+                String nextReg = this.incrementRegister();
+                mipsString.append("\tli ").append(nextReg).append(", ").append(value).append("\n");
+                mipsString.append("\tsw ").append(nextReg).append(", ").append(sym.getId()).append("\n");
+            }
+      
         }
     }
 
@@ -882,6 +892,7 @@ class PrintTree extends DepthFirstAdapter
         String cond = flapjacks.pop().toString();
         Object leftExp = flapjacks.pop();
         System.out.println(rightExp);
+        System.out.println(leftExp);
 
         //if neither is double then do normal stuff
         if (!((rightExp instanceof String && rightExp.toString().indexOf("$f") != -1) || leftExp instanceof String && leftExp.toString().indexOf("$f")!= -1)) {
@@ -906,27 +917,26 @@ class PrintTree extends DepthFirstAdapter
             mipsString.append("\t").append(cond).append(" ").append(reg3).append(", ").append(reg1).append(", ").append(reg2).append("\n");
             flapjacks.push(reg3);
         } else {    
-            //otherwise we need to convert one or the other to double and compare them that way
-            //first we need to load them both into the data section, so add them to the labels as floats even if one is an integer
-            String label1 = "float" + this.floatDataLabelCounter;   
-            this.floatDataLabelCounter++;
-            String label2 = "float" + this.floatDataLabelCounter;
-            this.floatDataLabelCounter++;
             String reg1 = this.incrementFloatRegister();
             String reg2 = this.incrementFloatRegister();
-            String reg3 = this.incrementFloatRegister();    //where the result will be
-            //store them in memory
-            data.append("\t").append(label1).append(": .float ").append(rightExp).append("\n");
-            data.append("\t").append(label2).append(": .float ").append(leftExp).append("\n");
-            mipsString.append("\tl.s " + reg1 + ", " + label1 + "\n");  //right exp in reg1
-            mipsString.append("\tl.s " + reg2 + ", " + label2 + "\n");  //left exp in reg2
-            if (leftExp instanceof String && !(rightExp instanceof String)) {
-                //we have to convert right exp (reg1)
-                mipsString.append("\tcvt.s.w ").append(reg1).append(", ").append(reg1);
-            } else if (rightExp instanceof String && !(leftExp instanceof String)) {
-                //we have to convert left exp (reg2)
-                mipsString.append("\tcvt.s.w ").append(reg2).append(", ").append(reg2);
-            } 
+            if (leftExp.toString().indexOf("$f") != -1 && rightExp.toString().indexOf("$f") == -1) {
+                //we have to move and convert right exp (reg1)
+                String conversionReg = this.incrementFloatRegister();
+                mipsString.append("\tmtc1 " + rightExp + ", " + conversionReg).append("\n");
+                mipsString.append("\tcvt.s.w ").append(conversionReg).append(", ").append(conversionReg).append("\n");
+                mipsString.append("\tmov.s ").append(reg2).append(", ").append(conversionReg).append("\n");
+                mipsString.append("\tmov.s ").append(reg1).append(", ").append(leftExp).append("\n");
+            } else if (leftExp.toString().indexOf("$f") == -1 && rightExp.toString().indexOf("$f") != -1)  {
+                //we have to move convert left exp (reg2)
+                String conversionReg = this.incrementFloatRegister();
+                mipsString.append("\tmtc1 " + leftExp + ", " + conversionReg).append("\n");
+                mipsString.append("\tcvt.s.w ").append(conversionReg).append(", ").append(conversionReg).append("\n");
+                mipsString.append("\tmov.s ").append(reg1).append(", ").append(conversionReg).append("\n");
+                mipsString.append("\tmov.s ").append(reg2).append(", ").append(rightExp).append("\n");
+            } else {
+                mipsString.append("\tmov.s ").append(reg1).append(", ").append(leftExp).append("\n");
+                mipsString.append("\tmov.s ").append(reg2).append(", ").append(rightExp).append("\n");
+            }
             //then change the comparison
             if (cond.equals("seq")) {
                 cond = "c.eq.s";
@@ -946,7 +956,11 @@ class PrintTree extends DepthFirstAdapter
             if (cond.equals("slt")) {
                 cond = "c.lt.s";
             }
-            mipsString.append("\t").append(cond).append(" ").append(reg3).append(", ").append(reg1).append(", ").append(reg2).append("\n");
+            mipsString.append("\t").append(cond).append(" ").append(reg1).append(", ").append(reg2).append("\n");
+            String reg3 = this.incrementRegister();
+            String oneRegister = this.incrementRegister();
+            mipsString.append("\tli ").append(oneRegister).append(", 1\n");
+            mipsString.append("\tmovt ").append(reg3).append(", ").append(oneRegister).append("\n");
             flapjacks.push(reg3);
         }
         
@@ -1136,7 +1150,6 @@ class PrintTree extends DepthFirstAdapter
             newRegister = this.incrementFloatRegister();
             mipsString.append("\tl.s " + newRegister + ", " + symbol.getId() + "\n");
         }
-        //TODO actually else?
         else {
             newRegister = this.incrementRegister();
             mipsString.append("\tlw " + newRegister + ", " + symbol.getId() + "\n");
