@@ -673,7 +673,8 @@ class PrintTree extends DepthFirstAdapter
             mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
             mipsString.append("\tsw ").append(currReg).append(", ").append(sym.getId()).append("\n");
         } else if(sym.getType().equals("REAL")) {
-            //TODO: handle reals here
+            mipsString.append("\taddi $v0, $zero, 6\n\tsyscall\n");
+            mipsString.append("\ts.s $f0, ").append(sym.getId()).append("\n");
         } else if(sym.getType().equals("STRING")) {
             //We aren't going to handle strings presently
         }

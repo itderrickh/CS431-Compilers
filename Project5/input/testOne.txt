@@ -1,11 +1,7 @@
 BEGIN
     VOID main() {
-        x : INT;
-        IF(TRUE) THEN {
-            x: REAL;
-            x := 3.4 + 5.4;
-            x: INT;
-            z := 5;
-        }
+        x : REAL;
+        x := GET();
+        PUT(x);
     }
 END
