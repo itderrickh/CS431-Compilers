@@ -1,0 +1,26 @@
+BEGIN
+    VOID main() {
+        w : INT;
+        x : STRING;
+        y : REAL;
+        z : BOOLEAN;
+
+        w := 0;
+        y := 123.45;
+        z := TRUE;
+        WHILE(z) {
+            y := y - 12;
+            w++;
+            PUT(y);
+
+            IF(w > 5) THEN {
+                z := FALSE;
+            }
+        }
+
+        x := "Hello World";
+        FOR(INT h := 10; h > 5; h--) {
+            PUT(x);
+        }
+    }
+END

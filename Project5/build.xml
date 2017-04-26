@@ -4,6 +4,7 @@
 	
     <target name="clean">
         <delete dir="build"/>
+        <delete dir="output"/>
 
         <!-- We don't want these files hanging out otherwise rebuilding will fail -->
         <delete dir="${dir.source}/analysis" />
@@ -14,6 +15,7 @@
 
     <target name="generate">
         <mkdir dir="build/classes"/>
+        <mkdir dir="output"/>
 
         <!-- Generate all the sable cc classes -->
         <java jar="sablecc.jar" fork="true">
@@ -32,9 +34,12 @@
     </target>
 
     <target name="run">
-        <java classname="Project5.Main" classpath="${dir.build}" input="input/testOne.txt">
-            <arg line="testOne.s"/>
+        <java classname="Project5.Main" classpath="${dir.build}" input="input/Examples.txt">
+            <arg line="output/Examples.s"/>
         </java>
+        <!--<java classname="Project5.Main" classpath="${dir.build}" input="input/testOne.txt">
+            <arg line="output/testOne.s"/>
+        </java>-->
     </target>
     
     <target name="all">

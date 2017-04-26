@@ -12,7 +12,7 @@ class PrintTree extends DepthFirstAdapter
     private StringBuilder mipsString;
     private StringBuilder data;
     private ITable symbolTable;
-
+    private ArrayList<Symbol> visitedVariables = new ArrayList<>();
     private StringBuilder errors;
     private StringBuilder warnings;
     private int nextRegister = 0;
@@ -177,36 +177,40 @@ class PrintTree extends DepthFirstAdapter
     }
 
     public void doSymbol(Symbol s) {
-        if(!s.isUsed()) {
-            this.warnings.append("Variable ")
-                .append(s.getName())
-                .append(" was not used\n");
-        }
-
-        if(s != null) {
-            data.append("\t");
-
-            if(s.getValue() == null) {
-                //Set the variable to the default value
-                if(s.getType().equals("INT")) {
-                    data.append(s.getId()).append(": ").append(".word 0");
-                } else if(s.getType().equals("BOOLEAN")) {
-                    data.append(s.getId()).append(": ").append(".word 0");
-                } else if(s.getType().equals("STRING")) {
-                    data.append(s.getId()).append(": ").append(".asciiz \"\"");
-                } else if(s.getType().equals("REAL")) {
-                    data.append(s.getId()).append(": ").append(".float 0");
-                }
-            } else if(s.getValue() instanceof String) {
-                data.append(s.getId()).append(": ").append(".asciiz ").append(s.getValue().toString());
-            } else if(s.getValue() instanceof Double) {
-                data.append(s.getId()).append(": ").append(".float ").append(s.getValue().toString());
-            } else if(s.getValue() instanceof Integer) {
-                data.append(s.getId()).append(": ").append(".word ").append(s.getValue().toString());
+        if(!visitedVariables.contains(s)) {
+            if(!s.isUsed()) {
+                this.warnings.append("Variable ")
+                    .append(s.getName())
+                    .append(" was not used\n");
             }
-            data.append("\n");
-        } else {
-            errors.append("Undeclared variable: " + s.getName() + '\n');
+
+            if(s != null) {
+                data.append("\t");
+
+                if(s.getValue() == null) {
+                    //Set the variable to the default value
+                    if(s.getType().equals("INT")) {
+                        data.append(s.getId()).append(": ").append(".word 0");
+                    } else if(s.getType().equals("BOOLEAN")) {
+                        data.append(s.getId()).append(": ").append(".word 0");
+                    } else if(s.getType().equals("STRING")) {
+                        data.append(s.getId()).append(": ").append(".asciiz \"\"");
+                    } else if(s.getType().equals("REAL")) {
+                        data.append(s.getId()).append(": ").append(".float 0");
+                    }
+                } else if(s.getValue() instanceof String) {
+                    data.append(s.getId()).append(": ").append(".asciiz ").append(s.getValue().toString());
+                } else if(s.getValue() instanceof Double) {
+                    data.append(s.getId()).append(": ").append(".float ").append(s.getValue().toString());
+                } else if(s.getValue() instanceof Integer) {
+                    data.append(s.getId()).append(": ").append(".word ").append(s.getValue().toString());
+                }
+                data.append("\n");
+            } else {
+                errors.append("Undeclared variable: " + s.getName() + '\n');
+            }
+
+            visitedVariables.add(s);
         }
     }
 
@@ -217,30 +221,38 @@ class PrintTree extends DepthFirstAdapter
         }
 
         GlobalTable gt = (GlobalTable)this.symbolTable;
-        for(String g : gt.globalVariables.getKeys()) {
-            Symbol s = gt.globalVariables.getValue(g);
-            doSymbol(s);
-        }
-
-        for(String gc: gt.globalClasses.keySet()) {
-            ClassTable ct = gt.globalClasses.get(gc);
-            for(String c : ct.classVariables.getKeys()) {
-                Symbol sy = ct.classVariables.getValue(c);
-                doSymbol(sy);
+        if(gt != null) {
+            for(String g : gt.globalVariables.getKeys()) {
+                Symbol s = gt.globalVariables.getValue(g);
+                doSymbol(s);
             }
 
-            for(String cg: ct.classFunctions.keySet()) {
-                MethodTable mt = ct.classFunctions.get(cg);
-                for(String g : mt.methodVariables.getKeys()) {
-                    Symbol sym = mt.methodVariables.getValue(g);
-                    doSymbol(sym);
-                }
+            for(String gc: gt.globalClasses.keySet()) {
+                ClassTable ct = gt.globalClasses.get(gc);
+                if(ct != null) {
+                    for(String c : ct.classVariables.getKeys()) {
+                        Symbol sy = ct.classVariables.getValue(c);
+                        doSymbol(sy);
+                    }
 
-                for(String mg: mt.innerScopes.keySet()) {
-                    VariableTable vt = mt.innerScopes.get(cg);
-                    for(String v : vt.innerVariables.getKeys()) {
-                        Symbol symb = vt.innerVariables.getValue(v);
-                        doSymbol(symb);
+                    for(String cg: ct.classFunctions.keySet()) {
+                        MethodTable mt = ct.classFunctions.get(cg);
+                        if(mt != null) {
+                            for(String g : mt.methodVariables.getKeys()) {
+                                Symbol sym = mt.methodVariables.getValue(g);
+                                doSymbol(sym);
+                            }
+
+                            for(String mg: mt.innerScopes.keySet()) {
+                                VariableTable vt = mt.innerScopes.get(cg);
+                                if(vt != null) {
+                                    for(String v : vt.innerVariables.getKeys()) {
+                                        Symbol symb = vt.innerVariables.getValue(v);
+                                        doSymbol(symb);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -384,13 +396,25 @@ class PrintTree extends DepthFirstAdapter
     public void caseAIfStmt(AIfStmt node) {
         String ifStmt = "if" + this.ifLabelCounter;
         String bodyPart = "main" + this.mainBodyCounter;
+        this.ifLabelCounter++;
+        this.mainBodyCounter++;
         //get the condition
         node.getIdbool().apply(this);
 
         //Pop something off the stack, an id or a register
         String value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(ifStmt).append("\n");
-        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
+        
+        //Check if it is a register or id
+        if(value.contains("$")) {
+            mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(ifStmt).append("\n");
+            mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
+        } else {
+            String reg = this.incrementRegister();
+            Symbol symbol = findInSymbolTable(this.symbolTable, value);
+            mipsString.append("\tlw ").append(reg).append(", ").append(symbol.getId()).append("\n");
+            mipsString.append("\tbeq ").append(reg).append(", ").append("1, ").append(ifStmt).append("\n");
+            mipsString.append("\tbeq ").append(reg).append(", ").append("0, ").append(bodyPart).append("\n");
+        }
 
         mipsString.append(ifStmt).append(":\n");
         changeScope(true, ifStmt);
@@ -398,22 +422,31 @@ class PrintTree extends DepthFirstAdapter
         changeScope(false, "");
         mipsString.append("\tj ").append(bodyPart).append("\n");
         mipsString.append(bodyPart).append(": \n");
-
-        this.ifLabelCounter++;
-        this.mainBodyCounter++;
     }
 
     public void caseAIfelseStmt(AIfelseStmt node) {
         String ifStmt = "if" + this.ifLabelCounter;
         String elseStmt = "else" + this.ifLabelCounter;
         String bodyPart = "main" + this.mainBodyCounter;
+        this.ifLabelCounter++;
+        this.elseLabelCounter++;
+        this.mainBodyCounter++;
         //get the condition
         node.getIdbool().apply(this);
 
         //Pop something off the stack, an id or a register
         String value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(ifStmt).append("\n");
-        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(elseStmt).append("\n");
+        //Check if it is a register or id
+        if(value.contains("$")) {
+            mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(ifStmt).append("\n");
+            mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(elseStmt).append("\n");
+        } else {
+            String reg = this.incrementRegister();
+            Symbol symbol = findInSymbolTable(this.symbolTable, value);
+            mipsString.append("\tlw ").append(reg).append(", ").append(symbol.getId()).append("\n");
+            mipsString.append("\tbeq ").append(reg).append(", ").append("1, ").append(ifStmt).append("\n");
+            mipsString.append("\tbeq ").append(reg).append(", ").append("0, ").append(elseStmt).append("\n");
+        }
 
         mipsString.append(ifStmt).append(":\n");
         changeScope(true, ifStmt);
@@ -426,23 +459,30 @@ class PrintTree extends DepthFirstAdapter
         node.getStwo().apply(this);
         changeScope(false, "");
         mipsString.append("\tj ").append(bodyPart).append("\n");
-        mipsString.append(bodyPart).append(": \n");
-
-        this.ifLabelCounter++;
-        this.elseLabelCounter++;
-        this.mainBodyCounter++;
+        mipsString.append(bodyPart).append(": \n");        
     }
 
     public void caseAWhileStmt(AWhileStmt node) {
         String whileStmt = "while" + this.whileLabelCounter;
         String bodyPart = "main" + this.mainBodyCounter;
+        this.whileLabelCounter++;
+        this.mainBodyCounter++;
         //get the condition
         node.getIdbool().apply(this);
 
         //Pop something off the stack, an id or a register
         String value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(whileStmt).append("\n");
-        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
+        //Check if it is a register or id
+        if(value.contains("$")) {
+            mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(whileStmt).append("\n");
+            mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
+        } else {
+            String reg = this.incrementRegister();
+            Symbol symbol = findInSymbolTable(this.symbolTable, value);
+            mipsString.append("\tlw ").append(reg).append(", ").append(symbol.getId()).append("\n");
+            mipsString.append("\tbeq ").append(reg).append(", ").append("1, ").append(whileStmt).append("\n");
+            mipsString.append("\tbeq ").append(reg).append(", ").append("0, ").append(bodyPart).append("\n");
+        }
 
         mipsString.append(whileStmt).append(":\n");
         
@@ -453,13 +493,19 @@ class PrintTree extends DepthFirstAdapter
         //Repeating this might fix our issue of not having the correct register
         node.getIdbool().apply(this);
         value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append(" 1, ").append(whileStmt).append("\n");
+
+        if(value.contains("$")) {
+            mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(whileStmt).append("\n");
+        } else {
+            String reg = this.incrementRegister();
+            Symbol symbol = findInSymbolTable(this.symbolTable, value);
+            mipsString.append("\tlw ").append(reg).append(", ").append(symbol.getId()).append("\n");
+            mipsString.append("\tbeq ").append(reg).append(", ").append("1, ").append(whileStmt).append("\n");
+        }
+
         mipsString.append("\tj ").append(bodyPart).append("\n");
         
         mipsString.append(bodyPart).append(": \n");
-
-        this.whileLabelCounter++;
-        this.mainBodyCounter++;
     }
 
     public void caseAIncrementStmtexprtail(AIncrementStmtexprtail node) {
@@ -544,6 +590,7 @@ class PrintTree extends DepthFirstAdapter
     public void caseAForStmt(AForStmt node) {
         String forStmt = "for" + this.forLabelCounter;
         String bodyPart = "main" + this.mainBodyCounter;
+        this.mainBodyCounter++;
 
         node.getId().apply(this);
         node.getExpr().apply(this);
@@ -562,21 +609,37 @@ class PrintTree extends DepthFirstAdapter
             type = "REAL";
         }
 
-        //Check the value to make sure the old type still is legitimate
-        Symbol s = new Symbol(sym.getId(), value, type, id);
-        s.setUsed();
-        addToSymbolTable(id, s);
-        
+        Symbol s = null;
+        if(sym == null) {
+            s = new Symbol("variable" + variableCounter, value, type, id);
+            addToSymbolTable(id, s);
+            variableCounter++;
+        } else {
+            s = new Symbol(sym.getId(), value, type, id);
+            s.setUsed();
+            addToSymbolTable(id, s);
+        }
+
         if (!updateRegister.equals("")) {
-            mipsString.append("\tsw ").append(updateRegister).append(", ").append(id).append("\n");
+            mipsString.append("\tsw ").append(updateRegister).append(", ").append(s.getId()).append("\n");
         }
 
         node.getBoolean().apply(this);
 
         //Pop something off the stack, an id or a register
         value = flapjacks.pop().toString();
-        mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(forStmt).append("\n");
-        mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
+
+        //Check if it is a register or id
+        if(value.toString().contains("$")) {
+            mipsString.append("\tbeq ").append(value).append(", ").append("1, ").append(forStmt).append("\n");
+            mipsString.append("\tbeq ").append(value).append(", ").append("0, ").append(bodyPart).append("\n");
+        } else {
+            String reg = this.incrementRegister();
+            Symbol symbol = findInSymbolTable(this.symbolTable, value.toString());
+            mipsString.append("\tlw ").append(reg).append(", ").append(symbol.getId()).append("\n");
+            mipsString.append("\tbeq ").append(reg).append(", ").append("1, ").append(forStmt).append("\n");
+            mipsString.append("\tbeq ").append(reg).append(", ").append("0, ").append(bodyPart).append("\n");
+        }
 
         mipsString.append(forStmt).append(":\n");
         
@@ -708,7 +771,6 @@ class PrintTree extends DepthFirstAdapter
         sym.setUsed();
         //Check the value to make sure the old type still is legitimate
         addToSymbolTable(id, sym);
-        variableCounter++;
     }
 
     public void caseASwitchStmt(ASwitchStmt node) {
@@ -755,6 +817,7 @@ class PrintTree extends DepthFirstAdapter
             }
             caseStart++;
         }
+        this.mainBodyCounter++;
         mipsString.append("default" + this.defaultLabelCounter + ":\n");
         changeScope(true, "default" + this.defaultLabelCounter);
         node.getStwo().apply(this);
@@ -866,32 +929,61 @@ class PrintTree extends DepthFirstAdapter
         if(leftExpr instanceof Integer && !(rightExpr instanceof Integer)) {
             //Do the conversion here if right isn't int
             leftReg = this.incrementFloatRegister();
-            mipsString.append("\tmtc1 ").append(leftExpr).append(", ").append(leftReg).append("\n");
-            mipsString.append("\tcvt.s.w ").append(leftReg + ", " + leftReg);
+            String nextIntReg = this.incrementRegister();
+            mipsString.append("\tli ").append(nextIntReg).append(", ").append(leftExpr).append("\n");
+            mipsString.append("\tmtc1 ").append(nextIntReg).append(", ").append(leftReg).append("\n");
+            mipsString.append("\tcvt.s.w ").append(leftReg + ", " + leftReg + "\n");
         } else if(leftExpr instanceof Double) {
             leftReg = this.incrementFloatRegister();
             String floatDataLabel = "float" + this.floatDataLabelCounter;
             data.append("\t").append(floatDataLabel).append(": .float ").append(leftExpr).append("\n");
             mipsString.append("\tl.s " + rightReg + ", " + floatDataLabel + "\n");
             this.floatDataLabelCounter++;
-        } else if(leftExpr instanceof String) { //Is register
+        } else if(leftExpr instanceof String && leftExpr.toString().contains("$")) { //Is register
             leftReg = leftExpr.toString();
+        } else if(leftExpr instanceof String) {
+            Symbol s = findInSymbolTable(this.symbolTable, leftExpr.toString());
+            //Check type of symbol INT vs FLOAT
+            if(s.getType().equals("INT")) {
+                String nextReg = this.incrementRegister();
+                mipsString.append("\tlw ").append(nextReg).append(", ").append(s.getId()).append("\n");
+                leftReg = this.incrementFloatRegister();
+                mipsString.append("\tcvt.s.w").append(leftReg).append(", ").append(nextReg).append("\n");
+                //Convert word to s
+            } else if(s.getType().equals("REAL")) {
+                leftReg = this.incrementFloatRegister();
+                mipsString.append("\tl.s").append(leftReg).append(", ").append(s.getId()).append("\n");
+            }
         }
-
         //Here we will check if rightExpr is an INT, REAL or a register
         if(rightExpr instanceof Integer && !(leftExpr instanceof Integer)) {
             //Do the conversion here if left isn't int
             rightReg = this.incrementFloatRegister();
-            mipsString.append("\tmtc1 ").append(rightReg).append(", ").append(rightReg).append("\n");
-            mipsString.append("\tcvt.s.w ").append(rightReg + ", " + rightReg);
+            String nextIntReg = this.incrementRegister();
+            mipsString.append("\tli ").append(nextIntReg).append(", ").append(rightExpr).append("\n");
+            mipsString.append("\tmtc1 ").append(nextIntReg).append(", ").append(rightReg).append("\n");
+            mipsString.append("\tcvt.s.w ").append(rightReg + ", " + rightReg + "\n");
         } else if(rightExpr instanceof Double) {
             rightReg = this.incrementFloatRegister();
             String floatDataLabel = "float" + this.floatDataLabelCounter;
             data.append("\t").append(floatDataLabel).append(": .float ").append(rightExpr).append("\n");
             mipsString.append("\tl.s " + rightReg + ", " + floatDataLabel + "\n");
             this.floatDataLabelCounter++;
-        } else if(rightExpr instanceof String) { //Is register
+        } else if(rightExpr instanceof String && rightExpr.toString().contains("$")) { //Is register
             rightReg = rightExpr.toString();
+        } else if(rightExpr instanceof String) {
+            Symbol s = findInSymbolTable(this.symbolTable, rightExpr.toString());
+            //Check type of symbol INT vs FLOAT
+            if(s.getType().equals("INT")) {
+                String nextReg = this.incrementRegister();
+                mipsString.append("\tlw ").append(nextReg).append(", ").append(s.getId()).append("\n");
+                rightReg = this.incrementFloatRegister();
+                mipsString.append("\tcvt.s.w").append(rightReg).append(", ").append(nextReg).append("\n");
+                //Convert word to s
+            } else if(s.getType().equals("REAL")) {
+                rightReg = this.incrementFloatRegister();
+                mipsString.append("\tl.s").append(rightReg).append(", ").append(s.getId()).append("\n");
+            }
         }
 
         //Do integer math

@@ -46,4 +46,15 @@ public class Symbol {
     public void setUsed() {
         this.used = true;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Symbol))
+                return false;
+        if (obj == this)
+            return true;
+
+        Symbol s = (Symbol) obj;
+        return s.getId().equals(this.getId());
+    }
 }

@@ -3,7 +3,7 @@ package Project5.symbols;
 import java.util.*;
 
 public class SymbolTable implements ITable {
-    private HashMap<String, Symbol> symbolTable;
+    private HashMap<String, Symbol> symbolTable = new HashMap<>();
     private ITable parent;
 
     public ITable getParent() {
@@ -12,10 +12,6 @@ public class SymbolTable implements ITable {
 
     public void setParent(ITable parent) {
         this.parent = parent;
-    }
-
-    public SymbolTable() {
-        this.symbolTable = new HashMap<>();
     }
     
     public void add(String id, Symbol sym) {
