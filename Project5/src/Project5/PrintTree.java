@@ -882,31 +882,76 @@ class PrintTree extends DepthFirstAdapter
         String cond = flapjacks.pop().toString();
         Object leftExp = flapjacks.pop();
 
-        String reg1 = this.incrementRegister();
-        String reg2 = this.incrementRegister();
-        String reg3 = this.incrementRegister();
-        //Load left and right into registers
-        //Compare them into a new register, push register onto stack
-        if(leftExp instanceof Integer) {
-            mipsString.append("\tli ").append(reg1).append(", ").append(leftExp).append("\n");
-        } else if(leftExp instanceof Double) {
-            //TODO: Handle comparing reals
-        } else if(leftExp instanceof String) {
-            //Might have to handle id vs string here
-            mipsString.append("\tmove ").append(reg1).append(", ").append(leftExp).append("\n");
-        }
 
-        if(rightExp instanceof Integer) {
-            mipsString.append("\tli ").append(reg2).append(", ").append(rightExp).append("\n");
-        } else if(rightExp instanceof Double) {
-            //TODO: Handle comparing reals
-        } else if(rightExp instanceof String) {
-            //Might have to handle id vs string here
-            mipsString.append("\tmove ").append(reg2).append(", ").append(rightExp).append("\n");
-        }
+        //if neither is double then do normal stuff
+        if (!leftExp instanceof Double && !rightExp instanceof Double) {
+            String reg1 = this.incrementRegister();
+            String reg2 = this.incrementRegister();
+            String reg3 = this.incrementRegister();
+            //Load left and right into registers
+            //Compare them into a new register, push register onto stack
+            if(leftExp instanceof Integer) {
+                mipsString.append("\tli ").append(reg1).append(", ").append(leftExp).append("\n");
+            } else if(leftExp instanceof String) {
+                //Might have to handle id vs string here
+                mipsString.append("\tmove ").append(reg1).append(", ").append(leftExp).append("\n");
+            }
 
-        mipsString.append("\t").append(cond).append(" ").append(reg3).append(", ").append(reg1).append(", ").append(reg2).append("\n");
-        flapjacks.push(reg3);
+            if(rightExp instanceof Integer) {
+                mipsString.append("\tli ").append(reg2).append(", ").append(rightExp).append("\n");
+            }  else if(rightExp instanceof String) {
+                //Might have to handle id vs string here
+                mipsString.append("\tmove ").append(reg2).append(", ").append(rightExp).append("\n");
+            }
+            mipsString.append("\t").append(cond).append(" ").append(reg3).append(", ").append(reg1).append(", ").append(reg2).append("\n");
+            flapjacks.push(reg3);
+        } else {    //otherwise we need to convert one or the other to double and compare them that way
+            //first we need to load them both into the data section, so add them to the labels as floats even if one is an integer
+            String label1 = "float" + this.floatDataLabelCounter;   
+            this.floatDataLabelCounter++;
+            String label2 = "float" + this.floatDataLabelCounter;
+            this.floatDataLabelCounter++;
+            String reg1 = this.incrementFloatRegister();
+            String reg2 = this.incrementFloatRegister();
+            String reg3 = this.incrementFloatRegister();    //where the result will be
+            //store them in memory
+            data.append("\t").append(label1).append(": .float ").append(rightExp).append("\n");
+            data.append("\t").append(label2).append(": .float ").append(leftExp).append("\n");
+            mipsString.append("\tl.s " + reg1 + ", " + label1 + "\n");  //right exp in reg1
+            mipsString.append("\tl.s " + reg2 + ", " + label2 + "\n");  //left exp in reg2
+            if (leftExp instanceof Double && !rightExp instanceof Double) {
+                //we have to convert right exp (reg1)
+                mipsString.append("\tcvt.s.w ").append(reg1).append(", ").append(reg1);
+            } else if (rightExp instanceof Double && !leftExp instanceof Double) {
+                //we have to convert left exp (reg2)
+                mipsString.append("\tcvt.s.w ").append(reg2).append(", ").append(reg2);
+            } 
+            //then change the comparison
+            if (cond.equals("seq")) {
+
+            }
+            if (cond.equals("sne")) {
+
+            }
+            if (cond.equals("sge")) {
+
+            }
+            if (cond.equals("sle")) {
+
+            }
+            if (cond.equals("sgt")) {
+
+            }
+            if (cond.equals("slt")) {
+                
+            }
+
+            //store to other
+
+
+
+        }
+        
     }
 
     /*****************************************
