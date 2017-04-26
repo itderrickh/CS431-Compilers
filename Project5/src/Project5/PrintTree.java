@@ -346,19 +346,23 @@ class PrintTree extends DepthFirstAdapter
 
         Object value = flapjacks.pop();
         String id = flapjacks.pop().toString();
-        String type = "";
-        if(value instanceof Integer) {
-            type = "INT";
-        } else if(value instanceof String) {
-            type = "REAL";
-        }
 
         Symbol s = findInSymbolTable(this.symbolTable, id);
         if(s == null) {
             this.errors.append("Undeclared variable: " + id + "\n");
         } else {
-            s.setValue(value);
             addToSymbolTable(id, s);
+            if(value instanceof Integer) {
+                String nextReg = this.incrementRegister();
+                mipsString.append("\tli ").append(nextReg).append(", ").append(value).append("\n");
+                mipsString.append("\tsw ").append(nextReg).append(", ").append(s.getId()).append("\n");
+            } else if(value instanceof Double) {
+                String nextReg = this.incrementFloatRegister();
+                String floatDataLabel = "float" + this.floatDataLabelCounter;
+                data.append("\t").append(floatDataLabel).append(": .float ").append(value).append("\n");
+                mipsString.append("\tl.s " + nextReg + ", " + floatDataLabel + "\n");
+                this.floatDataLabelCounter++;
+            }
         }
         
         if (!updateRegister.equals("")) {
@@ -562,18 +566,14 @@ class PrintTree extends DepthFirstAdapter
 
         Object value = flapjacks.pop();
         String id = flapjacks.pop().toString();
-        String type = "";
-        if(value instanceof Integer) {
-            type = "INT";
-        } else if(value instanceof String) {
-            type = "REAL";
-        }
 
         Symbol s = findInSymbolTable(this.symbolTable, id);
         if(s == null) {
             this.errors.append("Undeclared variable: " + id + "\n");
         } else {
-            s.setValue(value);
+            String nextReg = this.incrementRegister();
+            mipsString.append("\tli ").append(nextReg).append(", ").append(value).append("\n");
+            mipsString.append("\tsw ").append(nextReg).append(", ").append(s.getId()).append("\n");
             addToSymbolTable(id, s);
         }
         
@@ -768,10 +768,15 @@ class PrintTree extends DepthFirstAdapter
         Object value = flapjacks.pop();
         String id = flapjacks.pop().toString();
         Symbol sym = findInSymbolTable(this.symbolTable, id);
-        sym.setValue(value);
         sym.setUsed();
-        //Check the value to make sure the old type still is legitimate
-        addToSymbolTable(id, sym);
+        if(sym == null) {
+            this.errors.append("Undeclared variable: " + id + "\n");
+        } else {
+            addToSymbolTable(id, sym);
+            String nextReg = this.incrementRegister();
+            mipsString.append("\tli ").append(nextReg).append(", ").append(value).append("\n");
+            mipsString.append("\tsw ").append(nextReg).append(", ").append(sym.getId()).append("\n");
+        }
     }
 
     public void caseASwitchStmt(ASwitchStmt node) {
@@ -981,7 +986,7 @@ class PrintTree extends DepthFirstAdapter
             leftReg = this.incrementFloatRegister();
             String floatDataLabel = "float" + this.floatDataLabelCounter;
             data.append("\t").append(floatDataLabel).append(": .float ").append(leftExpr).append("\n");
-            mipsString.append("\tl.s " + rightReg + ", " + floatDataLabel + "\n");
+            mipsString.append("\tl.s " + leftReg + ", " + floatDataLabel + "\n");
             this.floatDataLabelCounter++;
         } else if(leftExpr instanceof String && leftExpr.toString().contains("$")) { //Is register
             leftReg = leftExpr.toString();
