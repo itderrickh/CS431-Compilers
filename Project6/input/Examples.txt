@@ -1,0 +1,40 @@
+BEGIN
+    VOID main() {
+        w : INT;
+        x : STRING;
+        y : REAL;
+        z : BOOLEAN;
+
+        w := 0;
+        y := 123.45;
+        z := TRUE;
+        WHILE(z) {
+            y := y - 12;
+            w++;
+            PUT(y);
+
+            IF(w > 4) THEN {
+                z := FALSE;
+            }
+        }
+
+        SWITCH(w) {
+            CASE(4):
+                PUT(w);
+                BREAK;
+            CASE(5):
+                PUT(w);
+            CASE(6):
+                w++;
+                PUT(w);
+                BREAK;
+            DEFAULT:
+                PUT(w);
+        }
+
+        x := "Hello World";
+        FOR(INT h := 10; h > 5; h--) {
+            PUT(x);
+        }
+    }
+END
