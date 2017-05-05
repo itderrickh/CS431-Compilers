@@ -31,7 +31,8 @@ public class Main{
             FileWriter.writeToFile(arguments[0], tree.getResult());
       }
       catch(Exception e){
-            System.out.println("Error(s): \n" + e.getMessage());
+            e.printStackTrace();
+            //System.out.println("Error(s): \n" + e.getMessage());
       }
    }
 }

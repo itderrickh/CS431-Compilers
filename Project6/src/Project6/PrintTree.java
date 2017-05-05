@@ -359,10 +359,9 @@ class PrintTree extends DepthFirstAdapter
                 mipsString.append("\tsw ").append(nextReg).append(", ").append(s.getId()).append("\n");
             } else if(value instanceof Double) {
                 String nextReg = this.incrementFloatRegister();
-                String floatDataLabel = "float" + this.floatDataLabelCounter;
-                data.append("\t").append(floatDataLabel).append(": .float ").append(value).append("\n");
-                mipsString.append("\tl.s " + nextReg + ", " + floatDataLabel + "\n");
-                this.floatDataLabelCounter++;
+                mipsString.append("\tl.s " + nextReg + ", " + s.getId() + "\n");
+                s.setValue(value);
+                addToSymbolTable(s.getId(), s);
             }
         }
         
@@ -1117,7 +1116,7 @@ class PrintTree extends DepthFirstAdapter
         }
 
         //Do integer math
-        if(rightExpr instanceof Integer && leftExpr instanceof Integer) {
+        if((rightExpr instanceof Integer || rightReg.contains("$t")) && (leftExpr instanceof Integer || leftReg.contains("$t"))) {
             //if we get here neither were floats so whatever carry on
             String nextRegister = this.incrementRegister();
             mipsString.append("\tadd " + nextRegister + ", ").append(nextRegister + ", ").append(leftExpr.toString() + "\n");
