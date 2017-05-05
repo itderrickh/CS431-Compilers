@@ -1036,6 +1036,24 @@ class PrintTree extends DepthFirstAdapter
         String leftReg = "";
         String rightReg = "";
 
+
+
+        if(
+            (
+            (leftExpr instanceof Integer) ||
+            (leftExpr instanceof String && leftExpr.toString().contains("$t")) ||
+            (leftExpr instanceof String && findInSymbolTable(this.symbolTable, leftExpr.toString()) != null && findInSymbolTable(this.symbolTable, leftExpr.toString()).getType().equals("INT"))
+            ) &&
+            (
+            (rightExpr instanceof Integer) ||
+            (instanceof String && rightExpr.toString().contains("$t")) ||
+            (rightExpr instanceof String && findInSymbolTable(this.symbolTable, rightExpr.toString()) != null && findInSymbolTable(this.symbolTable, rightExpr.toString()).getType().equals("INT"))
+            )
+            ) {
+            //Done
+        }
+
+
         //Here we will check if leftExpr is an INT, REAL or a register
         if(leftExpr instanceof Integer && !(rightExpr instanceof Integer)) {
             //Do the conversion here if right isn't int
