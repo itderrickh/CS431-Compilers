@@ -1,11 +1,11 @@
 BEGIN
     VOID main() {
         x : INT;
-        y : INT;
-        z : INT;
+        y : REAL;
+        z : REAL;
 
         x := 14;
-        y := 5;
+        y := 5.4;
 
         z := x + y;
         PUT(z);
