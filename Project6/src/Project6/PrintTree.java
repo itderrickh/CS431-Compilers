@@ -337,6 +337,87 @@ class PrintTree extends DepthFirstAdapter
     /*****************************************
     * START STMT AREA                        *
     *****************************************/
+
+    public void caseAListexpStmt(AListexpStmt node) {
+        node.getId().apply(this);
+        String id = flapjacks.pop().toString();
+
+        int stackSizeBefore = flapjacks.size();
+        node.getVarlisttwo().apply(this);
+        int numParams = flapjacks.size() - stackSizeBefore;
+        int index = 0;
+        while(index < numParams) {
+            //Add the values to $a registers  NOTE: make sure correct types
+            Object value = flapjacks.pop();
+            if(value instanceof Integer) {
+                //screw it for now
+            }
+
+            index++;
+        }
+
+        //Change the number (4) depending on return value
+        mipsString.append("\tsw $ra, 4($sp)\n");
+        mipsString.append("\tjal ").append(id).append("\n");
+        mipsString.append("\tsw $v0, ($sp)\n");
+        mipsString.append("\taddiu $sp, $sp, 4\n");
+    }
+
+    public void caseAExptailVarlisttwo(AExptailVarlisttwo node) {
+        node.getExpr().apply(this);
+        LinkedList<PVarlisttwotail> list = node.getVarlisttwotail();
+        if(list != null) {
+            for (int i = 0; i < list.size(); i++) {
+                PVarlisttwotail next = list.get(i);
+
+                if(next instanceof AMoreexpVarlisttwotail) {
+                    ((AMoreexpVarlisttwotail)next).apply(this);
+                } else {
+                    ((AMoreboolVarlisttwotail)next).apply(this);
+                }
+            }
+        }
+    }
+
+    public void caseABooltailVarlisttwo(ABooltailVarlisttwo node) {
+        node.getBoolean().apply(this);
+        LinkedList<PVarlisttwotail> list = node.getVarlisttwotail();
+        if(list != null) {
+            for (int i = 0; i < list.size(); i++) {
+                PVarlisttwotail next = list.get(i);
+                
+                if(next instanceof AMoreexpVarlisttwotail) {
+                    ((AMoreexpVarlisttwotail)next).apply(this);
+                } else {
+                    ((AMoreboolVarlisttwotail)next).apply(this);
+                }
+            }
+        }
+    }
+
+    public void caseAEmptyVarlisttwo(AEmptyVarlisttwo node) {
+        flapjacks.push(null);
+    }
+
+    public void caseAMoreexpVarlisttwotail(AMoreexpVarlisttwotail node) {
+        node.getExpr().apply(this);
+    }
+
+    public void caseAMoreboolVarlisttwotail(AMoreboolVarlisttwotail node) {
+        node.getBoolean().apply(this);
+    }
+
+    public void caseAReturnStmt(AReturnStmt node) {
+        node.getExpr().apply(this);
+
+        Object value = flapjacks.pop();
+        int v = (int) value;
+
+        //Handle different return values
+        mipsString.append("\taddi $v0, $zero, ").append(v).append("\n");
+        mipsString.append("\tjr $ra\n");
+    }
+
     public void caseAAssignexpStmt(AAssignexpStmt node) {
         node.getId().apply(this);
         node.getExpr().apply(this);
