@@ -355,16 +355,44 @@ class PrintTree extends DepthFirstAdapter
             this.errors.append("Undeclared variable: " + id + "\n");
         } else {
             addToSymbolTable(id, s);
-            if(value instanceof Integer) {
-                String nextReg = this.incrementRegister();
-                mipsString.append("\tli ").append(nextReg).append(", ").append(value).append("\n");
-                mipsString.append("\tsw ").append(nextReg).append(", ").append(s.getId()).append("\n");
-            } else if(value instanceof Double) {
-                String nextReg = this.incrementFloatRegister();
-                mipsString.append("\tl.s " + nextReg + ", " + s.getId() + "\n");
-                s.setValue(value);
-                addToSymbolTable(s.getId(), s);
+
+            if (node.getSubset() != null) {
+                node.getSubset().apply(this);
+                int size = Integer.parseInt(flapjacks.pop().toString());
+                int bitSize = 0;
+                if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    bitSize = 4;
+                }
+                if (type.equals("REAL")) {
+                    bitSize = 32;
+                }
+                String pointerReg = this.incrementRegister();  //register we store the address in
+                mipsString.append("\tlw ").append(pointerReg).append(", ").append(id).append("\n");
+
+                //TODO have to check for floats
+                String valueReg = this.incrementRegister();
+                mipsString.append("\tli ").append(valueReg).append(", ").append(value).append("\n");
+                mipsString.append("\tsw ").append(valueReg).append(", ").append(bitSize * size + "(" + pointerReg + ")\n");
+
+
+
+
+                
+            } else {
+                if(value instanceof Integer) {
+                    String nextReg = this.incrementRegister();
+                    mipsString.append("\tli ").append(nextReg).append(", ").append(value).append("\n");
+                    mipsString.append("\tsw ").append(nextReg).append(", ").append(s.getId()).append("\n");
+                } else if(value instanceof Double) {
+                    String nextReg = this.incrementFloatRegister();
+                    mipsString.append("\tl.s " + nextReg + ", " + s.getId() + "\n");
+                    s.setValue(value);
+                    addToSymbolTable(s.getId(), s);
+                }
             }
+
+
+            
         }
         
         if (!updateRegister.equals("")) {
