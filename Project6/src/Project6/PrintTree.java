@@ -203,6 +203,8 @@ class PrintTree extends DepthFirstAdapter
                     data.append(s.getId()).append(": ").append(".asciiz ").append(s.getValue().toString());
                 } else if(s.getValue() instanceof Double) {
                     data.append(s.getId()).append(": ").append(".float ").append(s.getValue().toString());
+                } else if(s.getValue() instanceof Integer && s.getType().equals("ARRAY")) {
+                    data.append(s.getId()).append(": ").append(".space ").append(s.getValue().toString());
                 } else if(s.getValue() instanceof Integer) {
                     data.append(s.getId()).append(": ").append(".word ").append(s.getValue().toString());
                 }
@@ -397,7 +399,23 @@ class PrintTree extends DepthFirstAdapter
         String type = flapjacks.pop().toString();
         String id = flapjacks.pop().toString();
 
-        addToSymbolTable(id, new Symbol("variable" + this.variableCounter, null, type, id));
+        if (node.getSubset() != null) { //must be an array declaration
+            node.getSubset().apply(this);
+            int size = Integer.parseInt(flapjacks.pop().toString());
+            int bitSize = 0;
+            if (type.equals("INT") || type.equals("BOOLEAN")) {
+                bitSize = 4;
+            }
+            if (type.equals("REAL")) {
+                bitSize = 32;
+            }
+            //string? nah
+            addToSymbolTable(id, new Symbol("variable" + this.variableCounter, bitSize * size, "ARRAY", id));
+        } else {
+            addToSymbolTable(id, new Symbol("variable" + this.variableCounter, null, type, id));
+        }
+
+        
         this.variableCounter++;
     }
 
@@ -1469,5 +1487,10 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseTDivide(TDivide node) {
         flapjacks.push("div");
+    }
+
+    public void caseTSubset(TSubset node) {
+        String trimmed = node.getText().substring(1, node.getText().length() - 1);
+        flapjacks.push(Integer.parseInt(trimmed));   //should be some number, push it on the stack
     }
 }
