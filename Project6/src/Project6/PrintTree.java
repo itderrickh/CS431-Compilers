@@ -826,6 +826,24 @@ class PrintTree extends DepthFirstAdapter
         Symbol sym = findInSymbolTable(this.symbolTable, id);
         if(sym == null) {
             this.errors.append("Undeclared variable: " + id + "\n");
+        } else if(node.getSubset() != null) {
+            node.getSubset().apply(this);
+            String type = sym.getType();
+            int index = Integer.parseInt(flapjacks.pop().toString());
+            int bitSize = 0;
+            if (type.equals("INT") || type.equals("BOOLEAN")) {
+                bitSize = 4;
+            }
+            if (type.equals("REAL")) {
+                bitSize = 32;
+            }
+            String pointerReg = this.incrementRegister();  //register we store the address in
+            mipsString.append("\tla ").append(pointerReg).append(", ").append(sym.getId()).append("\n");
+
+            //TODO have to check for floats
+            mipsString.append("\taddi $v0, $zero, 5\n\tsyscall\n");
+            mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
+            mipsString.append("\tsw ").append(currReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
         } else if(sym.getType().equals("INT") || sym.getType().equals("BOOLEAN")) {
             mipsString.append("\taddi $v0, $zero, 5\n\tsyscall\n");
             mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
@@ -854,7 +872,7 @@ class PrintTree extends DepthFirstAdapter
             String type = sym.getType();
             if (node.getSubset() != null) {
                 node.getSubset().apply(this);
-                int size = Integer.parseInt(flapjacks.pop().toString());
+                int index = Integer.parseInt(flapjacks.pop().toString());
                 int bitSize = 0;
                 if (type.equals("INT") || type.equals("BOOLEAN")) {
                     bitSize = 4;
@@ -867,7 +885,7 @@ class PrintTree extends DepthFirstAdapter
 
                 //TODO have to check for floats
                 String valueReg = this.incrementRegister();
-                mipsString.append("\tlw ").append(valueReg).append(", ").append(bitSize * size + "(" + pointerReg + ")\n"); 
+                mipsString.append("\tlw ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n"); 
                 mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(valueReg).append(", $zero\n");
                 mipsString.append("\tsyscall\n");
             }

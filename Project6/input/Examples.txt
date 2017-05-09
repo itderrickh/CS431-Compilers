@@ -1,7 +1,7 @@
 BEGIN
     VOID main() {
         x : INT[5];
-        x[0] := 1;
+        x[0] := GET();
         PUT(x[0]);
     }
 END
