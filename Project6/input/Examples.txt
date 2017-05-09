@@ -1,6 +1,6 @@
 BEGIN
     VOID main() {
-        x : INT[5];
+        x : REAL[5];
         x[0] := GET();
         PUT(x[0]);
     }

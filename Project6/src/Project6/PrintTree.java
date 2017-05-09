@@ -450,11 +450,17 @@ class PrintTree extends DepthFirstAdapter
                 }
                 String pointerReg = this.incrementRegister();  //register we store the address in
                 mipsString.append("\tla ").append(pointerReg).append(", ").append(s.getId()).append("\n");
-
-                //TODO have to check for floats
-                String valueReg = this.incrementRegister();
-                mipsString.append("\tli ").append(valueReg).append(", ").append(value).append("\n");
-                mipsString.append("\tsw ").append(valueReg).append(", ").append(bitSize * size + "(" + pointerReg + ")\n");
+                if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    String valueReg = this.incrementRegister();
+                    mipsString.append("\tli ").append(valueReg).append(", ").append(value).append("\n");
+                    mipsString.append("\tsw ").append(valueReg).append(", ").append(bitSize * size + "(" + pointerReg + ")\n");
+                } else if (type.equals("REAL")) {
+                    String valueReg = this.incrementFloatRegister();
+                    mipsString.append("\tl.s " + valueReg + ", " + s.getId() + "\n");
+                    s.setValue(value);
+                    addToSymbolTable(s.getId(), s);
+                    mipsString.append("\tsdc1 ").append(valueReg).append(", ").append(bitSize * size + "(" + pointerReg + ")\n");
+                }
             } else {
                 if(value instanceof Integer) {
                     String nextReg = this.incrementRegister();
@@ -467,9 +473,6 @@ class PrintTree extends DepthFirstAdapter
                     addToSymbolTable(s.getId(), s);
                 }
             }
-
-
-            
         }
         
         if (!updateRegister.equals("")) {
@@ -515,7 +518,7 @@ class PrintTree extends DepthFirstAdapter
                 bitSize = 32;
             }
             //string? nah
-            addToSymbolTable(id, new Symbol("variable" + this.variableCounter, bitSize * size, "ARRAY", id));
+            addToSymbolTable(id, new Symbol("variable" + this.variableCounter, bitSize * size, type, id));
         } else {
             addToSymbolTable(id, new Symbol("variable" + this.variableCounter, null, type, id));
         }
@@ -840,10 +843,15 @@ class PrintTree extends DepthFirstAdapter
             String pointerReg = this.incrementRegister();  //register we store the address in
             mipsString.append("\tla ").append(pointerReg).append(", ").append(sym.getId()).append("\n");
 
-            //TODO have to check for floats
-            mipsString.append("\taddi $v0, $zero, 5\n\tsyscall\n");
-            mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
-            mipsString.append("\tsw ").append(currReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+            if (type.equals("INT") || type.equals("BOOLEAN")) {
+                mipsString.append("\taddi $v0, $zero, 5\n\tsyscall\n");
+                mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
+                mipsString.append("\tsw ").append(currReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+            } else if (type.equals("REAL")) {
+                mipsString.append("\taddi $v0, $zero, 6\n\tsyscall\n");
+                mipsString.append("\ts.s $f0, ").append(bitSize * index + "(" + pointerReg + ")\n");
+            }
+            
         } else if(sym.getType().equals("INT") || sym.getType().equals("BOOLEAN")) {
             mipsString.append("\taddi $v0, $zero, 5\n\tsyscall\n");
             mipsString.append("\tadd ").append(currReg).append(", $zero, $v0\n");
@@ -882,14 +890,21 @@ class PrintTree extends DepthFirstAdapter
                 }
                 String pointerReg = this.incrementRegister();  //register we store the address in
                 mipsString.append("\tla ").append(pointerReg).append(", ").append(sym.getId()).append("\n");
-
-                //TODO have to check for floats
-                String valueReg = this.incrementRegister();
-                mipsString.append("\tlw ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n"); 
-                mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(valueReg).append(", $zero\n");
-                mipsString.append("\tsyscall\n");
+                if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    String valueReg = this.incrementRegister();
+                    mipsString.append("\tlw ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n"); 
+                    mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(valueReg).append(", $zero\n");
+                    mipsString.append("\tsyscall\n");
+                }
+                else if (type.equals("REAL")) {
+                    String valueReg = this.incrementFloatRegister();
+                    mipsString.append("\tlwc1 ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+                    mipsString.append("\tmov.s $f12, ").append(valueReg).append("\n");
+                    mipsString.append("\tli $v0, 2\n");
+                    mipsString.append("\tsyscall\n");
+                }
             }
-            if(type.equals("STRING")) {
+            else if(type.equals("STRING")) {
                 mipsString.append("\tli $v0, 4\n").append("\tla $a0, ").append(sym.getId()).append("\n");
                 mipsString.append("\tsyscall\n");
             } else if(type.equals("INT")) {
