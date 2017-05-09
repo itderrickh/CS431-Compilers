@@ -415,6 +415,8 @@ class PrintTree extends DepthFirstAdapter
                 mipsString.append("\tli $a").append(index).append(" ").append(value.toString()).append("\n");
             }
 
+            //TODO: DERRICK DO WORK HERE TO HANDLE ID"S IN PARAMETERS
+
             index++;
         }
 
@@ -455,6 +457,13 @@ class PrintTree extends DepthFirstAdapter
                 }
             }
         }
+    }
+
+    public void caseAReturnStmt(AReturnStmt node) {
+        node.getExpr().apply(this);
+
+        //Load return value in $ra
+        //TODO: DERRICK DO WORK HERE FOR RETURNS
     }
 
     public void caseAEmptyVarlisttwo(AEmptyVarlisttwo node) {
