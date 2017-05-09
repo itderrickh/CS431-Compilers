@@ -439,6 +439,7 @@ class PrintTree extends DepthFirstAdapter
 
             if (node.getSubset() != null) {
                 node.getSubset().apply(this);
+                String type = s.getType();
                 int size = Integer.parseInt(flapjacks.pop().toString());
                 int bitSize = 0;
                 if (type.equals("INT") || type.equals("BOOLEAN")) {
@@ -448,17 +449,12 @@ class PrintTree extends DepthFirstAdapter
                     bitSize = 32;
                 }
                 String pointerReg = this.incrementRegister();  //register we store the address in
-                mipsString.append("\tlw ").append(pointerReg).append(", ").append(id).append("\n");
+                mipsString.append("\tla ").append(pointerReg).append(", ").append(s.getId()).append("\n");
 
                 //TODO have to check for floats
                 String valueReg = this.incrementRegister();
                 mipsString.append("\tli ").append(valueReg).append(", ").append(value).append("\n");
                 mipsString.append("\tsw ").append(valueReg).append(", ").append(bitSize * size + "(" + pointerReg + ")\n");
-
-
-
-
-                
             } else {
                 if(value instanceof Integer) {
                     String nextReg = this.incrementRegister();
@@ -727,11 +723,11 @@ class PrintTree extends DepthFirstAdapter
         if(s == null) {
             this.errors.append("Undeclared variable: " + id + "\n");
         } else {
-            String nextReg = this.incrementRegister();
-            mipsString.append("\tli ").append(nextReg).append(", ").append(value).append("\n");
-            mipsString.append("\tsw ").append(nextReg).append(", ").append(s.getId()).append("\n");
-            addToSymbolTable(id, s);
-        }
+                String nextReg = this.incrementRegister();
+                mipsString.append("\tli ").append(nextReg).append(", ").append(value).append("\n");
+                mipsString.append("\tsw ").append(nextReg).append(", ").append(s.getId()).append("\n");
+                addToSymbolTable(id, s);
+            }
         
         if (!updateRegister.equals("")) {
             if (updateRegister.indexOf("$f") != -1) {
@@ -856,6 +852,25 @@ class PrintTree extends DepthFirstAdapter
             addToSymbolTable(id, sym);
 
             String type = sym.getType();
+            if (node.getSubset() != null) {
+                node.getSubset().apply(this);
+                int size = Integer.parseInt(flapjacks.pop().toString());
+                int bitSize = 0;
+                if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    bitSize = 4;
+                }
+                if (type.equals("REAL")) {
+                    bitSize = 32;
+                }
+                String pointerReg = this.incrementRegister();  //register we store the address in
+                mipsString.append("\tla ").append(pointerReg).append(", ").append(sym.getId()).append("\n");
+
+                //TODO have to check for floats
+                String valueReg = this.incrementRegister();
+                mipsString.append("\tlw ").append(valueReg).append(", ").append(bitSize * size + "(" + pointerReg + ")\n"); 
+                mipsString.append("\tli $v0, 1\n").append("\tadd $a0, ").append(valueReg).append(", $zero\n");
+                mipsString.append("\tsyscall\n");
+            }
             if(type.equals("STRING")) {
                 mipsString.append("\tli $v0, 4\n").append("\tla $a0, ").append(sym.getId()).append("\n");
                 mipsString.append("\tsyscall\n");
