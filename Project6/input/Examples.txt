@@ -9,17 +9,11 @@ BEGIN
 
         z := x + y;
         PUT(z);
-        test();
+        test(1, 3);
     }
 
-    VOID test() {
-        x : INT;
-        y : REAL;
-        z : REAL;
-
-        x := 14;
-        y := 5.4;
-
+    VOID test(x : INT, y : INT) {
+        z : INT;
         z := x + y;
         PUT(z);
         test2();

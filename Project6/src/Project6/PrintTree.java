@@ -326,9 +326,60 @@ class PrintTree extends DepthFirstAdapter
 
         changeScope(true, id);
 
+        int stackLen = flapjacks.size();
+        //Put varlist on stack
+        node.getVarlist().apply(this);
+
+        int vars = (flapjacks.size() - stackLen) / 2;
+
+        Stack<String> values = new Stack<>();
+        int index = 0;
+        while(index < vars) {
+            String type = (String)flapjacks.pop();
+            String idVal = (String)flapjacks.pop();
+            values.push(idVal);
+            addToSymbolTable(idVal, new Symbol("variable" + this.variableCounter, null, type, idVal));
+            this.variableCounter++;
+            index++;
+        }
+
+        index = 0;
+        while(!values.empty()) {
+            String val = values.pop();
+            Symbol f = findInSymbolTable(this.symbolTable, val);
+            mipsString.append("\tsw $a").append(index).append(" ").append(f.getId()).append("\n");
+            index++;
+        }
+
         node.getStmtseq().apply(this);
 
         changeScope(false, "");
+    }
+
+    public void caseAMorevarsVarlist(AMorevarsVarlist node) {
+        node.getId().apply(this);
+        node.getType().apply(this);
+
+        if(node.getVarlisttail() != null) {
+            LinkedList<PVarlisttail> more = node.getVarlisttail();
+            for(PVarlisttail m : more) {
+                if(m instanceof ATailempVarlisttail) {
+                    ((ATailempVarlisttail)m).apply(this);
+                } else if(m instanceof ALargetailVarlisttail) {
+                    ((ALargetailVarlisttail)m).apply(this);
+                }
+            }
+        }
+    }
+
+    public void caseATailempVarlisttail(ATailempVarlisttail node) {
+        node.getId().apply(this);
+        node.getType().apply(this);
+    }
+
+    public void caseALargetailVarlisttail(ALargetailVarlisttail node) {
+        node.getId().apply(this);
+        node.getType().apply(this);
     }
 
     public void caseAMorestatementsStmtseq(AMorestatementsStmtseq node) {
@@ -348,11 +399,20 @@ class PrintTree extends DepthFirstAdapter
         node.getVarlisttwo().apply(this);
         int numParams = flapjacks.size() - stackSizeBefore;
         int index = 0;
+        Stack<Object> values = new Stack<>();
         while(index < numParams) {
-            //Add the values to $a registers  NOTE: make sure correct types
             Object value = flapjacks.pop();
+            values.push(value);
+            index++;
+        }
+
+        index = 0;
+        while(!values.empty()) {
+            Object value = values.pop();
             if(value instanceof Integer) {
-                //screw it for now
+                mipsString.append("\tli $a").append(index).append(" ").append(value.toString()).append("\n");
+            } else if(value instanceof Double) {
+                mipsString.append("\tli $a").append(index).append(" ").append(value.toString()).append("\n");
             }
 
             index++;

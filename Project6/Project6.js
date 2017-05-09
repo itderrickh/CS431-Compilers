@@ -118,7 +118,7 @@ Productions
            {switch} switch lparen expr rparen lcurly case [lctwo]:lparen intnum [rcone]:rparen colon stmtseq breakpart? morecases* default [coltwo]:colon [stwo]:stmtseq [rctwo]:rcurly;
     varlisttail = {tailemp} comma id colon type |
                   {largetail} comma id colon type subset;
-    varlist = id colon type subset? varlisttail* |
+    varlist = {morevars} id colon type subset? varlisttail* |
               {empty} ;
     varlisttwotail = {moreexp} comma expr |
                      {morebool} comma boolean;
