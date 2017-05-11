@@ -1028,7 +1028,34 @@ class PrintTree extends DepthFirstAdapter
         } else {
             symbol.setUsed();
             addToSymbolTable(id, symbol);
-            if (symbol.getType().equals("REAL")) {
+            if (node.getSubset() != null) {
+                node.getSubset().apply(this);
+                String type = symbol.getType();
+                int index = Integer.parseInt(flapjacks.pop().toString());
+                int bitSize = 0;
+                if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    bitSize = 4;
+                }
+                if (type.equals("REAL")) {
+                    bitSize = 32;
+                }
+                String pointerReg = this.incrementRegister();  //register we store the address in
+                mipsString.append("\tla ").append(pointerReg).append(", ").append(symbol.getId()).append("\n");
+                if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    String valueReg = this.incrementRegister();
+                    mipsString.append("\tlw ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n"); 
+                    mipsString.append("\tadd ").append(valueReg).append(", ").append(valueReg).append(", 1\n");
+                    mipsString.append("\tsw ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+                } else if (type.equals("REAL")) {
+                    String valueReg = this.incrementFloatRegister();
+                    mipsString.append("\tl.s " + valueReg + ", " + symbol.getId() + "\n");
+                    String oneRegister = this.incrementFloatRegister();
+                    mipsString.append("\tl.s ").append(oneRegister).append(", ").append("FLOATONE\n");
+                    mipsString.append("\tadd.s ").append(valueReg).append(", ").append(valueReg).append(", ").append(oneRegister).append("\n");
+                    mipsString.append("\tsdc1 ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+                }
+            }
+            else if (symbol.getType().equals("REAL")) {
                 currReg = this.incrementFloatRegister();
                 mipsString.append("\tl.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
                 String oneRegister = this.incrementFloatRegister();
@@ -1056,7 +1083,33 @@ class PrintTree extends DepthFirstAdapter
         } else {
             symbol.setUsed();
             addToSymbolTable(id, symbol);
-            if (symbol.getType().equals("REAL")) {
+            if (node.getSubset() != null) {
+                node.getSubset().apply(this);
+                String type = symbol.getType();
+                int index = Integer.parseInt(flapjacks.pop().toString());
+                int bitSize = 0;
+                if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    bitSize = 4;
+                }
+                if (type.equals("REAL")) {
+                    bitSize = 32;
+                }
+                String pointerReg = this.incrementRegister();  //register we store the address in
+                mipsString.append("\tla ").append(pointerReg).append(", ").append(symbol.getId()).append("\n");
+                if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    String valueReg = this.incrementRegister();
+                    mipsString.append("\tlw ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n"); 
+                    mipsString.append("\tsub ").append(valueReg).append(", ").append(valueReg).append(", 1\n");
+                    mipsString.append("\tsw ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+                } else if (type.equals("REAL")) {
+                    String valueReg = this.incrementFloatRegister();
+                    mipsString.append("\tl.s " + valueReg + ", " + symbol.getId() + "\n");
+                    String oneRegister = this.incrementFloatRegister();
+                    mipsString.append("\tl.s ").append(oneRegister).append(", ").append("FLOATONE\n");
+                    mipsString.append("\tsub.s ").append(valueReg).append(", ").append(valueReg).append(", ").append(oneRegister).append("\n");
+                    mipsString.append("\tsdc1 ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+                }
+            } else if (symbol.getType().equals("REAL")) {
                 currReg = this.incrementFloatRegister();
                 mipsString.append("\tl.s ").append(currReg).append(", ").append(symbol.getId()).append("\n");
                 String oneRegister = this.incrementFloatRegister();
@@ -1085,7 +1138,33 @@ class PrintTree extends DepthFirstAdapter
         } else {
             sym.setUsed();
             addToSymbolTable(id, sym);
-            if (value instanceof String) {
+            if (node.getSubset() != null) {
+                node.getSubset().apply(this);
+                String type = sym.getType();
+                int index = Integer.parseInt(flapjacks.pop().toString());
+                int bitSize = 0;
+                if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    bitSize = 4;
+                }
+                if (type.equals("REAL")) {
+                    bitSize = 32;
+                }
+                String pointerReg = this.incrementRegister();  //register we store the address in
+                mipsString.append("\tla ").append(pointerReg).append(", ").append(sym.getId()).append("\n");
+                if (value instanceof String) {
+                    if (value.toString().indexOf("$t") != -1) {
+                        mipsString.append("\tsw ").append(value).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+                    }
+                    else if (value.toString().indexOf("$f") != -1) {
+                        mipsString.append("\tsdc1 ").append(value).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+                    }
+                } else {
+                    String valueReg = this.incrementRegister();
+                    mipsString.append("\tli ").append(valueReg).append(", ").append(value).append("\n");
+                    mipsString.append("\tsw ").append(valueReg).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+                }
+            }
+            else if (value instanceof String) {
                 if (value.toString().indexOf("$t") != -1) { //already exists in a t register, just store it
                     mipsString.append("\tsw ").append(value.toString()).append(", ").append(sym.getId()).append("\n");
                 }
@@ -1657,7 +1736,28 @@ class PrintTree extends DepthFirstAdapter
         } else {
             symbol.setUsed();
             addToSymbolTable(id, symbol);
-
+            if (node.getSubset() != null) {
+                node.getSubset().apply(this);
+                String type = symbol.getType();
+                int index = Integer.parseInt(flapjacks.pop().toString());
+                int bitSize = 0;
+                if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    bitSize = 4;
+                }
+                if (type.equals("REAL")) {
+                    bitSize = 32;
+                }
+                String pointerReg = this.incrementRegister();  //register we store the address in
+                mipsString.append("\tla ").append(pointerReg).append(", ").append(symbol.getId()).append("\n");
+                if (type.equals("REAL")) {
+                    newRegister = this.incrementFloatRegister();
+                    mipsString.append("\tlwc1 ").append(newRegister).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+                } else if (type.equals("INT") || type.equals("BOOLEAN")) {
+                    newRegister = this.incrementRegister();
+                    mipsString.append("\tlw ").append(newRegister).append(", ").append(bitSize * index + "(" + pointerReg + ")\n");
+                }
+                
+            }
             if (symbol.getType().equals("REAL")) {
                 newRegister = this.incrementFloatRegister();
                 mipsString.append("\tl.s " + newRegister + ", " + symbol.getId() + "\n");

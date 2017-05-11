@@ -1,5 +1,6 @@
 BEGIN
     VOID main() {
+<<<<<<< HEAD
         x : INT;
         y : REAL;
         z : REAL;
@@ -18,5 +19,13 @@ BEGIN
         z := x + y;
         PUT(z);
         RETURN z;
+=======
+        x : INT[5];
+        y : INT;
+        x[0] := 1;
+        x[1] := 2;
+        y := x[0] + x[1];
+        PUT(y);
+>>>>>>> a434c795410ade390bb1f8beae9f6953d64fa02b
     }
 END
