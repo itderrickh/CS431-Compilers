@@ -444,7 +444,7 @@ class PrintTree extends DepthFirstAdapter
         mipsString.append("\tsw $ra, 4($sp)\n");
         mipsString.append("\tjal ").append(id).append("\n");
         mipsString.append("\tsw $v0, ($sp)\n");
-        mipsString.append("\taddiu $sp, $sp, 4\n");
+        mipsString.append("\taddiu $sp, $sp, -4\n");
     }
 
     public void caseAExptailVarlisttwo(AExptailVarlisttwo node) {
