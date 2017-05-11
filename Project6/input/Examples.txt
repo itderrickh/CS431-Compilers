@@ -1,8 +1,10 @@
 BEGIN
     VOID main() {
         x : INT[5];
+        y : INT;
         x[0] := 1;
-        x[0]--;
-        PUT(x[0]);
+        x[1] := 2;
+        y := x[0] + x[1];
+        PUT(y);
     }
 END
