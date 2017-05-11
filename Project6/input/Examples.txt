@@ -9,25 +9,14 @@ BEGIN
 
         z := x + y;
         PUT(z);
-        test(y, 3);
+        x := test(x, 3);
+        PUT(x);
     }
 
-    VOID test(x : INT, y : INT) {
+    INT test(x : INT, y : INT) {
         z : INT;
         z := x + y;
         PUT(z);
-        test2();
-    }
-
-    VOID test2() {
-        x : INT;
-        y : REAL;
-        z : REAL;
-
-        x := 14;
-        y := 5.4;
-
-        z := x + y;
-        PUT(z);
+        RETURN z;
     }
 END

@@ -353,6 +353,11 @@ class PrintTree extends DepthFirstAdapter
 
         node.getStmtseq().apply(this);
 
+        if(id.equals("main")) {
+            mipsString.append("\tli $v0, 10\n");
+            mipsString.append("\tsyscall\n");
+        }
+
         changeScope(false, "");
     }
 
@@ -512,7 +517,7 @@ class PrintTree extends DepthFirstAdapter
 
         Object value = flapjacks.pop();
         String id = flapjacks.pop().toString();
-
+        
         Symbol s = findInSymbolTable(this.symbolTable, id);
         if(s == null) {
             this.errors.append("Undeclared variable: " + id + "\n");
@@ -1582,6 +1587,63 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseARealFactor(ARealFactor node) {
         node.getRealnum().apply(this);
+    }
+
+    public void caseAListFactor(AListFactor node) {
+        node.getId().apply(this);
+        String id = flapjacks.pop().toString();
+
+        int stackSizeBefore = flapjacks.size();
+        node.getVarlisttwo().apply(this);
+        int numParams = flapjacks.size() - stackSizeBefore;
+        int index = 0;
+        Stack<Object> values = new Stack<>();
+        while(index < numParams) {
+            Object value = flapjacks.pop();
+            values.push(value);
+            index++;
+        }
+
+        index = 0;
+        while(!values.empty()) {
+            Object value = values.pop();
+            //DERRICK DOING WORK HERE.
+            if(value instanceof Integer) {
+                mipsString.append("\tli $a").append(index).append(", ").append(value.toString()).append("\n");
+            } else if(value instanceof Double) {
+                mipsString.append("\tli $a").append(index).append(", ").append(value.toString()).append("\n");
+            } else if(value instanceof String && value.toString().contains("$t")) {
+                mipsString.append("\tmove $a").append(index).append(", ").append(value.toString()).append("\n");
+            } else if(value instanceof String && value.toString().contains("$f")) {
+                mipsString.append("\tmove $a").append(index).append(", ").append(value.toString()).append("\n");
+            } else if(value instanceof String) { //Must be an id
+                //Integer type
+                Symbol s = findInSymbolTable(this.symbolTable, value.toString());
+
+                if(s != null) {
+                    if(s.getType().equals("INT")) {
+                        String reg = this.incrementRegister();
+                        mipsString.append("\tli ").append(reg).append(", ").append(s.getId()).append("\n");
+                        mipsString.append("\tmove $a").append(index).append(" ").append(reg).append("\n");
+                    } else if(s.getType().equals("REAL")) {
+                        String reg = this.incrementFloatRegister();
+                        mipsString.append("\tl.s ").append(reg).append(", ").append(s.getId()).append("\n");
+                        mipsString.append("\tmove $a").append(index).append(", ").append(reg).append("\n");
+                    }
+                } else {
+                    this.errors.append("Undeclared variable: " + value + "\n");
+                }
+            }
+
+            index++;
+        }
+
+        mipsString.append("\tsw $ra, 4($sp)\n");
+        mipsString.append("\tjal ").append(id).append("\n");
+        mipsString.append("\tsw $v0, ($sp)\n");
+        mipsString.append("\taddiu $sp, $sp, -4\n");
+
+        flapjacks.push("$v0");
     }
 
     public void caseAIdFactor(AIdFactor node) {
