@@ -413,9 +413,28 @@ class PrintTree extends DepthFirstAdapter
                 mipsString.append("\tli $a").append(index).append(" ").append(value.toString()).append("\n");
             } else if(value instanceof Double) {
                 mipsString.append("\tli $a").append(index).append(" ").append(value.toString()).append("\n");
-            }
+            } else if(value instanceof String && value.toString().contains("$t")) {
+                mipsString.append("\tli $a").append(index).append(" ").append(value.toString()).append("\n");
+            } else if(value instanceof String && value.toString().contains("$f")) {
+                mipsString.append("\tla $a").append(index).append(" ").append(value.toString()).append("\n");
+            } else if(value instanceof String) { //Must be an id
+                //Integer type
+                Symbol s = findInSymbolTable(this.symbolTable, value.toString());
 
-            //TODO: DERRICK DO WORK HERE TO HANDLE ID"S IN PARAMETERS
+                if(s != null) {
+                    if(s.getType().equals("INT")) {
+                        String reg = this.incrementRegister();
+                        mipsString.append("\tli ").append(reg).append(", ").append(s.getId()).append("\n");
+                        mipsString.append("\tli $a").append(index).append(" ").append(reg).append("\n");
+                    } else if(s.getType().equals("REAL")) {
+                        String reg = this.incrementFloatRegister();
+                        mipsString.append("\tl.s ").append(reg).append(", ").append(s.getId()).append("\n");
+                        mipsString.append("\tla $a").append(index).append(" ").append(reg).append("\n");
+                    }
+                } else {
+                    this.errors.append("Undeclared variable: " + value + "\n");
+                }
+            }
 
             index++;
         }
@@ -462,8 +481,12 @@ class PrintTree extends DepthFirstAdapter
     public void caseAReturnStmt(AReturnStmt node) {
         node.getExpr().apply(this);
 
-        //Load return value in $ra
-        //TODO: DERRICK DO WORK HERE FOR RETURNS
+        Object value = flapjacks.pop();
+        int v = (int) value;
+
+        //Handle different return values
+        mipsString.append("\taddi $v0, $zero, ").append(v).append("\n");
+        mipsString.append("\tjr $ra\n");
     }
 
     public void caseAEmptyVarlisttwo(AEmptyVarlisttwo node) {
@@ -476,17 +499,6 @@ class PrintTree extends DepthFirstAdapter
 
     public void caseAMoreboolVarlisttwotail(AMoreboolVarlisttwotail node) {
         node.getBoolean().apply(this);
-    }
-
-    public void caseAReturnStmt(AReturnStmt node) {
-        node.getExpr().apply(this);
-
-        Object value = flapjacks.pop();
-        int v = (int) value;
-
-        //Handle different return values
-        mipsString.append("\taddi $v0, $zero, ").append(v).append("\n");
-        mipsString.append("\tjr $ra\n");
     }
 
     public void caseAAssignexpStmt(AAssignexpStmt node) {

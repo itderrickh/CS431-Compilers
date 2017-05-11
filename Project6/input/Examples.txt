@@ -1,8 +1,5 @@
 BEGIN
     VOID main() {
-        x : REAL[5];
-        x[0] := GET();
-        PUT(x[0]);
         x : INT;
         y : REAL;
         z : REAL;
@@ -12,7 +9,7 @@ BEGIN
 
         z := x + y;
         PUT(z);
-        test(1, 3);
+        test(x, 3);
     }
 
     VOID test(x : INT, y : INT) {
