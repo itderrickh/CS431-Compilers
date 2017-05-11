@@ -1,33 +1,8 @@
 BEGIN
     VOID main() {
-        x : INT;
-        y : REAL;
-        z : REAL;
-
-        x := 14;
-        y := 5.4;
-
-        z := x + y;
-        PUT(z);
-        test(y, 3);
-    }
-
-    VOID test(x : INT, y : INT) {
-        z : INT;
-        z := x + y;
-        PUT(z);
-        test2();
-    }
-
-    VOID test2() {
-        x : INT;
-        y : REAL;
-        z : REAL;
-
-        x := 14;
-        y := 5.4;
-
-        z := x + y;
-        PUT(z);
+        x : INT[5];
+        x[0] := 1;
+        x[0]--;
+        PUT(x[0]);
     }
 END
