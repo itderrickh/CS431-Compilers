@@ -409,14 +409,15 @@ class PrintTree extends DepthFirstAdapter
         index = 0;
         while(!values.empty()) {
             Object value = values.pop();
+            //DERRICK DOING WORK HERE.
             if(value instanceof Integer) {
-                mipsString.append("\tli $a").append(index).append(" ").append(value.toString()).append("\n");
+                mipsString.append("\tli $a").append(index).append(", ").append(value.toString()).append("\n");
             } else if(value instanceof Double) {
-                mipsString.append("\tli $a").append(index).append(" ").append(value.toString()).append("\n");
+                mipsString.append("\tli $a").append(index).append(", ").append(value.toString()).append("\n");
             } else if(value instanceof String && value.toString().contains("$t")) {
-                mipsString.append("\tli $a").append(index).append(" ").append(value.toString()).append("\n");
+                mipsString.append("\tmove $a").append(index).append(", ").append(value.toString()).append("\n");
             } else if(value instanceof String && value.toString().contains("$f")) {
-                mipsString.append("\tla $a").append(index).append(" ").append(value.toString()).append("\n");
+                mipsString.append("\tmove $a").append(index).append(", ").append(value.toString()).append("\n");
             } else if(value instanceof String) { //Must be an id
                 //Integer type
                 Symbol s = findInSymbolTable(this.symbolTable, value.toString());
@@ -425,11 +426,11 @@ class PrintTree extends DepthFirstAdapter
                     if(s.getType().equals("INT")) {
                         String reg = this.incrementRegister();
                         mipsString.append("\tli ").append(reg).append(", ").append(s.getId()).append("\n");
-                        mipsString.append("\tli $a").append(index).append(" ").append(reg).append("\n");
+                        mipsString.append("\tmove $a").append(index).append(" ").append(reg).append("\n");
                     } else if(s.getType().equals("REAL")) {
                         String reg = this.incrementFloatRegister();
                         mipsString.append("\tl.s ").append(reg).append(", ").append(s.getId()).append("\n");
-                        mipsString.append("\tla $a").append(index).append(" ").append(reg).append("\n");
+                        mipsString.append("\tmove $a").append(index).append(", ").append(reg).append("\n");
                     }
                 } else {
                     this.errors.append("Undeclared variable: " + value + "\n");

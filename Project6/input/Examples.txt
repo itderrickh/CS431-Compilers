@@ -9,7 +9,7 @@ BEGIN
 
         z := x + y;
         PUT(z);
-        test(x, 3);
+        test(y, 3);
     }
 
     VOID test(x : INT, y : INT) {
