@@ -1408,9 +1408,9 @@ class PrintTree extends DepthFirstAdapter
                 mipsString.append("\tlw ").append(nrr).append(", ").append(ls.getId()).append("\n");
                 right = nrr;
             }
-
             //if we get here neither were floats so whatever carry on
             String nextRegister = this.incrementRegister();
+            mipsString.append("\tli " + nextRegister + ", 0\n"); //make sure the register we're adding into is 0
             mipsString.append("\tadd " + nextRegister + ", ").append(nextRegister + ", ").append(left + "\n");
             mipsString.append("\t" + addOp + " " + nextRegister + ", ").append(nextRegister + ", ").append(right + "\n");
             flapjacks.push(null);
@@ -1630,6 +1630,7 @@ class PrintTree extends DepthFirstAdapter
         if(rightFactor instanceof Integer && leftTerm instanceof Integer) {
             //if we get here neither were floats so whatever carry on
             String nextRegister = this.incrementRegister();
+            mipsString.append("\tli " + nextRegister + ", 0\n"); //make sure the register we're adding into is 0
             mipsString.append("\tadd " + nextRegister + ", ").append(nextRegister + ", ").append(leftTerm.toString() + "\n");
             mipsString.append("\t" + multOp + " " + nextRegister + ", ").append(nextRegister + ", ").append(rightFactor.toString() + "\n");
         } else {
@@ -1728,7 +1729,7 @@ class PrintTree extends DepthFirstAdapter
     public void caseAIdFactor(AIdFactor node) {
         node.getId().apply(this);
         String id = flapjacks.pop().toString();
-        String newRegister;
+        String newRegister = "";
         Symbol symbol = findInSymbolTable(this.symbolTable, id);
 
         if(symbol == null) {
@@ -1758,7 +1759,7 @@ class PrintTree extends DepthFirstAdapter
                 }
                 
             }
-            if (symbol.getType().equals("REAL")) {
+            else if (symbol.getType().equals("REAL")) {
                 newRegister = this.incrementFloatRegister();
                 mipsString.append("\tl.s " + newRegister + ", " + symbol.getId() + "\n");
             }
